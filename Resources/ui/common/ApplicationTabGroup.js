@@ -1,0 +1,29 @@
+
+"use strict";
+
+function ApplicationTabGroup(tabList) {
+
+	//create module instance
+	var self = Ti.UI.createTabGroup();
+	
+	var i;
+	for (i=0; i < tabList.length; i=i+1) {
+		
+		var label = L(tabList[i].name);
+
+		var win = new tabList[i].window(label);
+
+		var tab = Ti.UI.createTab({
+			title: label,
+			icon: tabList[i].icon,
+			window: win
+		});
+		win.containingTab = tab;
+		
+		self.addTab(tab);
+	}
+
+	return self;
+}
+
+module.exports = ApplicationTabGroup;
