@@ -1,7 +1,7 @@
 catalogit
 =========
 
-Welcome to CatalogIt Project
+Welcome to the CatalogIt Project
 
 This is an Appcelerator Titanium application using a tabbed interface, each of which consists of multiple stacks of windows associated with tabs in a tab group.  A starting point for tab-based application with multiple top-level windows. Requires Titanium Mobile SDK 1.8.0+.
 
