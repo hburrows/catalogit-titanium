@@ -26,7 +26,7 @@ function ApplicationWindow() {
 	var facebook = Ti.UI.createButton({
 		height:44,
 		width:200,
-		title:'Facebook',
+		title:Ti.Facebook.getLoggedIn() ? 'Disconnect Facebook' : ' Connect Facebook',
 		top:100
 	});
 	self.add(facebook);
@@ -54,6 +54,73 @@ function ApplicationWindow() {
 		top:250
 	});
 	self.add(foursquare);
+
+	facebook.addEventListener('click', function() {
+		if (Ti.Facebook.getLoggedIn()) {
+			Ti.Facebook.addEventListener('logout', function(e) {
+				// remove service
+				jotClient().removeService({
+					service_type: 'facebook',
+					success: function(response, cookie) {
+						alert("SUCCESS - facebook logout");
+						facebook.title = 'Connect Facebook';
+					},
+					error: function(response,xhr) {
+					}
+				});
+			});
+			Ti.Facebook.logout();
+		}
+		else {
+			Ti.Facebook.appid = '486185371402693';
+			Ti.Facebook.permissions = ['publish_stream']; // Permissions your app needs
+			Ti.Facebook.addEventListener('login', function(e) {
+			    if (e.success) {
+						// send access_token to backend
+						jotClient().addService({
+							service_type: 'facebook',
+							access_token: Ti.Facebook.accessToken,
+							success: function(response, cookie) {
+								facebook.title = 'Disconnect Facebook';
+							},
+							error: function(response,xhr) {
+								alert("error adding service");
+								Ti.Facebook.logout();
+							}
+						});
+			        
+			    }
+			    else if (e.error) {
+						alert(e.error);
+			    }
+			    else if (e.cancelled) {
+						alert("Canceled");
+			    }
+			});
+			Ti.Facebook.authorize();
+		}
+	});
+
+	twitter.addEventListener('click', function() {
+		Ti.UI.createAlertDialog({
+	            title:'Twitter',
+	            message:'authenticate the user with Twitter so we can pull their data'
+	      }).show();
+	});
+
+	instagram.addEventListener('click', function() {
+		Ti.UI.createAlertDialog({
+	            title:'Instagram',
+	            message:'authenticate the user with Instagram so we can pull their data'
+	      }).show();
+	});
+
+	foursquare.addEventListener('click', function() {
+		Ti.UI.createAlertDialog({
+	            title:'Foursquare',
+	            message:'authenticate the user with Foursquare so we can pull their data'
+	      }).show();
+	});
 
 	return self;
 }

@@ -3,13 +3,16 @@
 
 //var ENDPOINT = 'http://10.0.1.17:8000/';
 //var ENDPOINT = 'http://10.0.1.20:8000/';
-//var ENDPOINT = 'http://localhost:8000/';
-var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
+var ENDPOINT = 'http://localhost:8000/';
+//var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
 
 var STATUS_RESOURCE = ENDPOINT + 'status/';
 
 var LOGIN_RESOURCE = ENDPOINT + 'login';
 var LOGOUT_RESOURCE = ENDPOINT + 'logout';
+
+var SERVICES_RESOURCE = ENDPOINT + 'users/self/services/';
+var SERVICE_RESOURCE = ENDPOINT + 'users/self/services/%service_type%/';
 
 var ENTRIES_RESOURCE = ENDPOINT + 'users/self/entries/';
 var ENTRY_RESOURCE = ENDPOINT + 'users/self/entries/%entry_id%/';
@@ -97,6 +100,37 @@ exports = function() {
 			
 			xhr.open('POST', LOGOUT_RESOURCE);
 			xhr.send('');
+		},
+
+		addService: function(args) {
+			xhr.onload = function(e) {
+				that.handleOnLoad(args, this);
+			};
+			xhr.onerror = function(e) {
+				that.handleOnError(args, this);
+			};
+
+			var service_add_req = {service_type: args.service_type, access_token: args.access_token};
+			if (args.access_token_secret) {
+				service_add_req.access_token_secret = args.access_token_secret;
+			}
+
+			xhr.open('POST', SERVICES_RESOURCE);
+			xhr.setRequestHeader('Content-Type','application/json');
+			xhr.send(JSON.stringify(service_add_req));
+		},
+
+		removeService: function(args) {
+			xhr.onload = function(e) {
+				that.handleOnLoad(args, this);
+			};
+			xhr.onerror = function(e) {
+				that.handleOnError(args, this);
+			};
+
+			xhr.open('DELETE', SERVICE_RESOURCE.replace('%service_type%',args.service_type));
+			xhr.send();
+
 		},
 
 		listEntries: function(args) {

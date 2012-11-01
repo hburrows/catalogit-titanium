@@ -46,4 +46,5 @@
         <theme>default</theme>
     </mobileweb>
     <modules/>
+    <property name="ti.facebook.appid">486185371402693</property >
 </ti:app>
