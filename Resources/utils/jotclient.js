@@ -3,8 +3,8 @@
 
 //var ENDPOINT = 'http://10.0.1.17:8000/';
 //var ENDPOINT = 'http://10.0.1.20:8000/';
-var ENDPOINT = 'http://localhost:8000/';
-//var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
+//var ENDPOINT = 'http://localhost:8000/';
+var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
 
 var STATUS_RESOURCE = ENDPOINT + 'status/';
 

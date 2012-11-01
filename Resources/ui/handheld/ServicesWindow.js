@@ -1,8 +1,17 @@
 "use strict";
 
+//Ti.include('oauth_adapter.js')
+var social = require('lib/social');
+
 var jotClient = require('utils/jotclient');
 
 function ApplicationWindow() {
+
+	var twitterClient = social.create({
+	    site: 'Twitter',
+	    consumerKey: 'iv1azT2UGP6zCUikl0VByQ',
+	    consumerSecret: 'sHEkR4pC0MToQW2vL6lmon62vvJ2DpiY2q8WYE85k' 
+	});
 
 	var self = Ti.UI.createWindow({
 		title: 'Services',
@@ -26,7 +35,7 @@ function ApplicationWindow() {
 	var facebook = Ti.UI.createButton({
 		height:44,
 		width:200,
-		title:Ti.Facebook.getLoggedIn() ? 'Disconnect Facebook' : ' Connect Facebook',
+		title:Ti.Facebook.getLoggedIn() ? 'Disconnect Facebook' : 'Connect Facebook',
 		top:100
 	});
 	self.add(facebook);
@@ -34,7 +43,7 @@ function ApplicationWindow() {
 	var twitter = Ti.UI.createButton({
 		height:44,
 		width:200,
-		title:'Twitter',
+		title: twitterClient.isAuthorized() ? 'Disconnect Twitter' : "Connect Twitter",
 		top:150
 	});
 	self.add(twitter);
@@ -102,22 +111,53 @@ function ApplicationWindow() {
 	});
 
 	twitter.addEventListener('click', function() {
-		Ti.UI.createAlertDialog({
-	            title:'Twitter',
-	            message:'authenticate the user with Twitter so we can pull their data'
-	      }).show();
+
+		if (!twitterClient.isAuthorized()) {
+			twitterClient.authorize(function() {
+        var credentials = twitterClient.getAccessCredentials();
+				// send access_token to backend
+				jotClient().addService({
+					service_type: 'twitter',
+					access_token: credentials.access_token,
+					access_token_secret: credentials.access_token_secret,
+					success: function(response, cookie) {
+						twitter.title = 'Disconnect Twitter';
+					},
+					error: function(response,xhr) {
+						alert("Error adding Twitter service.  Could not store credentials.");
+						twitterClient.deauthorize();
+					}
+				});
+			});
+		}
+		else {
+			twitterClient.deauthorize();
+			// send access_token to backend
+			jotClient().removeService({
+				service_type: 'twitter',
+				success: function(response, cookie) {
+					twitter.title = 'Connect Twitter';
+				},
+				error: function(response,xhr) {
+					alert("Error removing Twitter service.  removeService failed.");
+				}
+			});
+		}
+    
+    return;
+
 	});
 
 	instagram.addEventListener('click', function() {
 		Ti.UI.createAlertDialog({
-	            title:'Instagram',
-	            message:'authenticate the user with Instagram so we can pull their data'
+	            title:'Not Yet Implemented',
+	            message:'Authenticate the user with Instagram so we can pull their data'
 	      }).show();
 	});
 
 	foursquare.addEventListener('click', function() {
 		Ti.UI.createAlertDialog({
-	            title:'Foursquare',
+	            title:'Not Yet Implemented',
 	            message:'authenticate the user with Foursquare so we can pull their data'
 	      }).show();
 	});
