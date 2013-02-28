@@ -34,25 +34,31 @@ function getIsTablet() {
 
 function showTabs(isTablet) {
 
-	var Capture;
-	var Browse;
-	var You;
+	var Capture,
+			Browse,
+			You,
+			Manage;
+	
 	if (isTablet) {
 		Capture = require('ui/tablet/CaptureWindow');
 		Browse = require('ui/tablet/BrowseWindow');
 		You = require('ui/tablet/YouWindow');
+		Manage = require('ui/tablet/ManageWindow');
 	}
 	else {
 		Capture = require('ui/handheld/CaptureWindow');
 		Browse = require('ui/handheld/BrowseWindow');
 		You = require('ui/handheld/YouWindow');
+		Manage = require('ui/handheld/ManageWindow');
 	}
 
 	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
-	new ApplicationTabGroup(
-		[{"name":"Capture","window":Capture,"icon":"/images/nav_post_jot.png"},
-		{"name":"Browse","window":Browse,"icon":"/images/KS_nav_ui.png"},
-		{"name":"You","window":You,"icon":"/images/nav_profile.png"}]).open();
+	new ApplicationTabGroup([
+		{"name":"Capture","window":Capture,"icon":"/images/nav_post_jot.png"},
+		{"name":"Browse","window":Browse,"icon":"/images/tabs/KS_nav_ui.png"},
+		{"name":"Manage","window":Manage,"icon":"/images/tabs/KS_nav_views.png"},
+		{"name":"You","window":You,"icon":"/images/nav_profile.png"}
+	]).open();
 
 }
 

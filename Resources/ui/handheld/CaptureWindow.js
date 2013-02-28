@@ -2,7 +2,7 @@
 
 function ApplicationWindow(title) {
 
-	var primaryCaptureGrid = require('/ui/handheld/PrimaryCaptureView');
+	var makeCaptureView = require('/ui/handheld/CaptureView');
 
 	var self = Ti.UI.createWindow({
 		title:title,
@@ -10,8 +10,7 @@ function ApplicationWindow(title) {
 		barColor:'#309'
 	});
 
-	var view = primaryCaptureGrid();
-	view.top = 20;
+	var view = makeCaptureView();
 	self.add(view);
 
 /*
@@ -34,6 +33,6 @@ function ApplicationWindow(title) {
 */
 
 	return self;
-};
+}
 
 module.exports = ApplicationWindow;

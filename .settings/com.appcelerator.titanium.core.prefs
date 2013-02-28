@@ -1,4 +1,7 @@
 eclipse.preferences.version=1
+provisioning_profiles/adhoc/CB05E577-1209-417C-9A8C-CA450D047369/appid=*
+provisioning_profiles/adhoc/CB05E577-1209-417C-9A8C-CA450D047369/name=Test Provisioning Profile
+provisioning_profiles/adhoc/CB05E577-1209-417C-9A8C-CA450D047369/uuid=CB05E577-1209-417C-9A8C-CA450D047369
 provisioning_profiles/development/C7239672-7EC6-40D5-AB68-1208469E2B65/appid=*
 provisioning_profiles/development/C7239672-7EC6-40D5-AB68-1208469E2B65/filepath=/Users/howard/Library/MobileDevice/Provisioning Profiles/C7239672-7EC6-40D5-AB68-1208469E2B65.mobileprovision
 provisioning_profiles/development/C7239672-7EC6-40D5-AB68-1208469E2B65/name=Test Provisioning Profile

@@ -11,15 +11,16 @@ var colors = ['#598FE7','#A7C2F8','#77D2D7','#9AE0BE'];
 var labels = ['Camera','Photo','Video','Dictate'];
 
 var jotClient = require('utils/jotclient');
+var makeSheetView = require('/ui/handheld/SheetView');
 
-function PrimaryCaptureView(tabList) {
+function CaptureView(tabList) {
 
   var row = Ti.UI.createTableViewRow({
-      className:'grid',
-      layout:'horizontal',
-      height: cellHeight + ySpacer,
-			selectionStyle:'NONE'
-  });
+	      className:'grid',
+	      layout:'horizontal',
+	      height: cellHeight + ySpacer,
+				selectionStyle:'NONE',
+			});
 
 	var j;
   for (j = 0; j < xGrid; j=j+1) {
@@ -48,14 +49,21 @@ function PrimaryCaptureView(tabList) {
     row.add(thisView);
 	}
 	
-	var self = Ti.UI.createTableView({
+	var self = Ti.UI.createView({
+		width: 'auto',
+		height: 'auto'
+	});
+
+	var tableView = Ti.UI.createTableView({
 		data:[row],
 		scrollable:false,
+		top: 10,
 		separatorColor:'transparent',
 		backgroundColor:'transparent'
 	});
-	 
-	self.addEventListener('click', function(e) {
+	self.add(tableView);
+
+	tableView.addEventListener('click', function(e) {
 
 		if(e.source.objName) {
 
@@ -71,7 +79,7 @@ function PrimaryCaptureView(tabList) {
 			}
 			else
 			if (activity === "Dictate") {
-				recordAudio();
+				recordAudio(self);
 			}
 			if (activity === "Video") {
 				recordVideo();
@@ -92,7 +100,12 @@ function PrimaryCaptureView(tabList) {
 	return self;
 }
 
-function recordAudio() {
+function recordAudio(view) {
+	var sheetView = makeSheetView(view);
+	sheetView.show();
+	return;
+
+	Titanium.Media.audioSessionMode = Ti.Media.AUDIO_SESSION_MODE_PLAY_AND_RECORD;
 	var recorder = Ti.Media.createAudioRecorder({
 		success:function(event) {
 			Ti.UI.createAlertDialog({
@@ -260,4 +273,4 @@ function choosePhoto() {
 	});
 }
 
-module.exports = PrimaryCaptureView;
+module.exports = CaptureView;
