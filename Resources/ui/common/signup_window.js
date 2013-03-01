@@ -1,6 +1,6 @@
 "use strict";
 
-function ApplicationWindow() {
+module.exports = function () {
 
 	var self = Ti.UI.createWindow({
 		title: L('signup'),
@@ -144,4 +144,3 @@ function ApplicationWindow() {
 	return self;
 }
 
-module.exports = ApplicationWindow;

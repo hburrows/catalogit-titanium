@@ -7,9 +7,9 @@
         <target device="android">true</target>
         <target device="blackberry">false</target>
     </deployment-targets>
-    <sdk-version>2.1.3.GA</sdk-version>
+    <sdk-version>3.0.2.GA</sdk-version>
     <id>com.howardburrows.catalogit</id>
-    <name>catalogit</name>
+    <name>CatalogIt</name>
     <version>1.0</version>
     <publisher>howard</publisher>
     <url>http://www.howardburrows.com</url>
@@ -46,5 +46,5 @@
         <theme>default</theme>
     </mobileweb>
     <modules/>
-    <property name="ti.facebook.appid">486185371402693</property >
+    <property name="ti.facebook.appid">486185371402693</property>
 </ti:app>

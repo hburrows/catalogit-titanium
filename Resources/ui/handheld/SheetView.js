@@ -1,6 +1,6 @@
-"use strict";
+exports = function (parent) {
 
-exports = function(parent) {
+  "use strict";
 
 	var washView,
 			containerView,
@@ -62,7 +62,7 @@ exports = function(parent) {
 	});
 	containerView.add(sheetView);
 
-	titleView = Ti.UI.createView({
+  titleView = Ti.UI.createView({
 				width:290,
 				height:50,
 				top:0
@@ -113,4 +113,5 @@ exports = function(parent) {
 			hideSheetView();
 		}
 	};
+	
 }

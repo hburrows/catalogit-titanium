@@ -8,13 +8,15 @@
 
 	<string name="signupMessage">To use CatalogIt you need to sign up for an account.  Accounts are free.  You need an account to securely store your catalog in the cloud as well as access your catalog from different devices (computer, phone, etc.).</string>
 	<string name="loginMessage">Welcome to CatalogIt</string>
-	<string name="signup">Sign Up</string>
+
+	<string name="signup">Create Account</string>
 	<string name="services">Services</string>
 	<string name="manage">Manage</string>
 
-	<string name="login">Log In</string>
-	<string name="logout">Log Out</string>
+	<string name="login">Sign In</string>
+	<string name="logout">Sign Out</string>
 
 	<string name="username">Username</string>
 	<string name="password">Password</string>
+
 </resources>

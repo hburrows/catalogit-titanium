@@ -1,5 +1,3 @@
-"use strict";
-
 var cellWidth = 68;
 var cellHeight = 68;
 var xSpacer = 10;
@@ -15,11 +13,13 @@ var makeSheetView = require('/ui/handheld/SheetView');
 
 function CaptureView(tabList) {
 
+  "use strict";
+
   var row = Ti.UI.createTableViewRow({
 	      className:'grid',
 	      layout:'horizontal',
 	      height: cellHeight + ySpacer,
-				selectionStyle:'NONE',
+				selectionStyle: 'NONE'
 			});
 
 	var j;
@@ -101,23 +101,31 @@ function CaptureView(tabList) {
 }
 
 function recordAudio(view) {
+  
+  var Win = require('ui/handheld/capture_audio'),
+      w = new Win();
+      w.title = 'Record Audio';
+      w.barColor = 'black';
+  
+  var b = Titanium.UI.createButton({
+        title:'Close',
+        style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
+      });
+  w.setLeftNavButton(b);
+  
+  b.addEventListener('click',function() {
+    w.close();
+  });
+
+  w.open({modal:true});
+
+  return;
+
 	var sheetView = makeSheetView(view);
 	sheetView.show();
 	return;
 
-	Titanium.Media.audioSessionMode = Ti.Media.AUDIO_SESSION_MODE_PLAY_AND_RECORD;
-	var recorder = Ti.Media.createAudioRecorder({
-		success:function(event) {
-			Ti.UI.createAlertDialog({
-				title:'Audio Recording',
-				message:'Success!!!'
-			}).show();										
-			return;	
-		}		
-	});
-	
-	recorder.start();
-				
+			
 	return;	
 }
 
@@ -130,7 +138,35 @@ function recordVideo() {
 }
 
 function takePhoto() {
-	
+  var pictureCapture = require('ui/handheld/photo_capture');
+  pictureCapture();
+  return;
+}
+
+// Handle successful login
+Ti.App.addEventListener("EntryCreated", function(e){
+  
+  var Win = require('ui/common/photo_edit'),
+      w = new Win();
+      w.title = 'Picture Notes';
+      w.barColor = 'black';
+
+  var b = Titanium.UI.createButton({
+        title:'Done',
+        style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
+      });
+  w.setRightNavButton(b);
+  
+  b.addEventListener('click',function() {
+    w.close();
+  });
+
+  w.open({modal:true});
+
+  return;
+});
+
+/*  
 	Ti.Media.showCamera({
 
 		allowEditing: true,
@@ -199,78 +235,17 @@ function takePhoto() {
 		}
 	});
 }
+*/
 
-	
 // ===================================
 // choose a photo from library
 // ===================================
 
 function choosePhoto() {
+  var pictureChoose = require('ui/handheld/photo_existing');
+  pictureChoose();
+  return;
 
-	Ti.Media.openPhotoGallery({
-
-		success:function(event) {
-	
-			// create a jotclient object; create a new entry and attach a photo to it
-			var client = jotClient();
-
-			client.createEntry({
-
-				entry_type: "photo",
-				attributes: {},
-
-				// create activity success
-				success: function(response,xhrResult) {
-
-					Ti.App.fireEvent('EntryUpdated');							
-
-					var entry_id = response.id;
-
-					client.uploadImage({
-
-						entry_id: entry_id,
-						media: event.media,
-						mediaType: event.mediaType,
-						cropRect: event.cropRect,
-			
-						// upload image success
-						success: function(response,xhrResult) {
-							Ti.App.fireEvent('EntryUpdated');							
-						},
-						error: function(response, xhrResult) {
-			        Ti.UI.createAlertDialog({
-			              title:'Upload Error',
-			              message:'status code: ' + xhrResult.status + ', message: ' + response
-			        }).show();										
-						}
-		
-					});
-
-				},
-
-				error: function(response, xhrResult) {
-	        Ti.UI.createAlertDialog({
-	              title:'Create Activity Error',
-	              message:'status code: ' + xhrResult.status + ', message: ' + response
-	        }).show();										
-				}
-
-			});
-	
-		},
-
-		cancel: function() {
-			// user cancel -- ignore
-		},
-
-		error:function(error) {
-			//win.close();
-			alert(error);
-		},
-
-		allowEditing: true,
-		mediaTypes: [Ti.Media.MEDIA_TYPE_PHOTO]
-	});
 }
 
 module.exports = CaptureView;

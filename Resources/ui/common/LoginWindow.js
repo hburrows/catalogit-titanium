@@ -1,5 +1,6 @@
-function ApplicationWindow() {
+module.exports = function () {
 
+  // create the window to hold all the "sub" windows in the navigation group
 	var self = Titanium.UI.createWindow();
 	
 	var loginWin = Ti.UI.createWindow({
@@ -47,7 +48,7 @@ function ApplicationWindow() {
 		height:'auto',
 		width:'auto'
 	});
-	self.add(label);
+	loginWin.add(label);
 	
 	var gridRowData = [];
 	
@@ -59,109 +60,110 @@ function ApplicationWindow() {
 		top:65
 	});
 	win.add(logo); */
-	
-	// email
-	var email = Ti.UI.createTableViewRow({
-		height:50,
-		selectionStyle:'NONE'
-	});
-	 
-	var emailLabel = Titanium.UI.createLabel({
-		text:L('username'),
-		//font:{fontSize:14,fontFamily:'MilanBold'},
-		left:10
-	});
-	 
-	email.add(emailLabel);
-	 
-	var emailTextField = Ti.UI.createTextField({
-		left:90,
-		hintText: 'username',
-		borderStyle:Ti.UI.INPUT_BORDERSTYLE_NONE,
-		autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE
-	});
-	
-	emailTextField.addEventListener('focus',function()
-	{
-		emailTextField.value = '';
-	});
-	
-	email.add(emailTextField);
-	
-	gridRowData.push(email);
-	
-	
-	
-	// password
-	var password = Ti.UI.createTableViewRow({
-		height:40,
-		selectionStyle:'NONE'
-	});
-	 
-	var passwordLabel = Titanium.UI.createLabel({
-		text:L('password'),
-		//font:{fontSize:14,fontFamily:'MilanBold'},
-		left:10
-	});
-	 
-	password.add(passwordLabel);
-	 
-	var passwordTextField = Ti.UI.createTextField({
-		left:90,
-		hintText: 'password',
-		borderStyle:Ti.UI.INPUT_BORDERSTYLE_NONE,
-		returnKeyType:Ti.UI.RETURNKEY_GO,
-		passwordMask:true
-	});
-	
-	passwordTextField.addEventListener('focus',function()
-	{
-		passwordTextField.value = '';
-	});
-	
-	password.add(passwordTextField);
-	
-	gridRowData.push(password);
-	
-	
-	// setup listeners for posting
-	//
-	emailTextField.addEventListener('return', function()
-	{
-		doLogin(emailTextField.value, passwordTextField.value);
-	});
-	
-	
-	passwordTextField.addEventListener('return', function()
-	{
-		doLogin(emailTextField.value, passwordTextField.value);
-	});
-	
-	
-	// create table and add row data
-	var table = Ti.UI.createTableView({
-		data:gridRowData,
-		style:Ti.UI.iPhone.TableViewStyle.GROUPED,
-		top:135,
-		backgroundColor:'transparent',
-		rowBackgroundColor:'white'
-	});
-	loginWin.add(table);
-	
+
+  //
+  //  CREATE USERNAME FIELD
+  //
+  var userName = Titanium.UI.createLabel({
+    color:'#000',
+    text:'Username',
+    top:50,
+    left:30,
+    width:100,
+    height:'auto'
+  });
+  
+  loginWin.add(userName);
+  
+  var userNameField = Titanium.UI.createTextField({
+    hintText:'enter username',
+    height:35,
+    top:75,
+    left:30,
+    width:250,
+    borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
+    autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE
+  });
+
+  userNameField.addEventListener('focus', function () {
+    userNameField.value = '';
+  });
+
+  userNameField.addEventListener('return', function()
+  {
+    doLogin(userNameField.value, passwordField.value);
+  });  
+
+  loginWin.add(userNameField);
+  
+  //
+  //  CREATE PASSWORD FIELD
+  //
+  var password = Titanium.UI.createLabel({
+    color:'#000',
+    text:'Password',
+    top:120,
+    left:30,
+    width:100,
+    height:'auto'
+  });
+  
+  loginWin.add(password);
+  
+  var passwordField = Titanium.UI.createTextField({
+    hintText:'enter password',
+    height:35,
+    top:145,
+    left:30,
+    width:250,
+    borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
+    autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE,
+    returnKeyType:Ti.UI.RETURNKEY_GO,
+    passwordMask:true    
+  });
+  
+  passwordField.addEventListener('focus', function () {
+    passwordField.value = '';
+  });
+
+  passwordField.addEventListener('return', function()
+  {
+    doLogin(userNameField.value, passwordField.value);
+  });
+
+  loginWin.add(passwordField);
+  
+
+/*
+ *  ----------------- 
+ */
+  var login = Ti.UI.createButton({
+    height:44,
+    width:250,
+    title:L('login'),
+    top: 210
+  });
+  loginWin.add(login);
+  
+  login.addEventListener('click', function() {
+    doLogin(userNameField.value, passwordField.value);
+  });
+
 	var signup = Ti.UI.createButton({
 		height:44,
 		width:250,
 		title:L('signup'),
-		top: 300
+		top: 265
 	});
 	loginWin.add(signup);
 	
 	signup.addEventListener('click', function() {
-		var signupWindow = require('ui/common/SignupWindow');
+		var signupWindow = require('ui/common/signup_window');
 		nav.open(signupWindow(), {animated:true});
 	});
 
-	// Close window and entire navigation group an successful login
+  // setup listener for successful login and close window 
+  // and entire navigation group
 	Ti.App.addEventListener("LoginSuccess", function(e){
 		// open tab group
 		self.close();
@@ -170,4 +172,3 @@ function ApplicationWindow() {
 	return self;
 };
 
-module.exports = ApplicationWindow;
