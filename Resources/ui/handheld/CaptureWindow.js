@@ -2,7 +2,7 @@
 
 function ApplicationWindow(title) {
 
-	var makeCaptureView = require('/ui/handheld/CaptureView');
+	var makeCaptureView = require('/ui/handheld/capture_view');
 
 	var self = Ti.UI.createWindow({
 		title:title,

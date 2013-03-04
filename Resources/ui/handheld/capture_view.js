@@ -144,23 +144,11 @@ function takePhoto() {
 }
 
 // Handle successful login
-Ti.App.addEventListener("EntryCreated", function(e){
+Ti.App.addEventListener("EntryCreated", function (e) {
   
-  var Win = require('ui/common/photo_edit'),
-      w = new Win();
-      w.title = 'Picture Notes';
-      w.barColor = 'black';
-
-  var b = Titanium.UI.createButton({
-        title:'Done',
-        style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
-      });
-  w.setRightNavButton(b);
-  
-  b.addEventListener('click',function() {
-    w.close();
-  });
-
+  var makePhotoEditWindow = require('ui/common/photo_edit'),
+      w = makePhotoEditWindow(e.entry_id);
+      
   w.open({modal:true});
 
   return;

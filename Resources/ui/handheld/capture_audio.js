@@ -2,6 +2,10 @@ module.exports = function () {
 
   "use strict";
 
+  var recorder = null,
+      recording = null,
+      player = null;
+    
   Titanium.Media.audioSessionMode = Ti.Media.AUDIO_SESSION_MODE_PLAY_AND_RECORD;
   var recorder = Ti.Media.createAudioRecorder({
     success:function(event) {
@@ -12,9 +16,7 @@ module.exports = function () {
       return; 
     }   
   });
-  
-  var recording = null;
-    
+
   var win = Titanium.UI.createWindow({
     backgroundColor:'#336699'
   });
@@ -49,6 +51,7 @@ module.exports = function () {
  
   start.addEventListener('click', function () {
     recorder.start();
+    stop.show();
   });
   
   var stop = Titanium.UI.createButton({
@@ -58,24 +61,46 @@ module.exports = function () {
     top:60
   });
   win.add(stop);
- 
+  stop.hide();
+
   stop.addEventListener('click', function () {
     recording = recorder.stop();
+    if (recording) {
+      playback.show();
+    }
+    stop.hide();
   });
 
   var playback = Titanium.UI.createButton({
     title:'Playback Recording',
     height:40,
     width:300,
-    top:110
+    top:110,
   });
   win.add(playback);
- 
-  stop.addEventListener('click', function () {
-    recording = recorder.stop();
-    if (recording) {
-      
+  playback.hide();
+  
+  playback.addEventListener('click', function () {
+
+    if (player && player.playing)
+    {
+      player.stop();
+      player.release();
+      player = null;
+      b2.title = 'Playback Recording';
     }
+    else
+    {
+      Ti.API.info("recording file size: "+ recording.size);
+      player = Titanium.Media.createSound({url:recording});
+      player.addEventListener('complete', function()
+      {
+        playback.title = 'Playback Recording';
+      });
+      player.play();
+      playback.title = 'Stop Playback';
+    }
+  
   });
 
   return win;

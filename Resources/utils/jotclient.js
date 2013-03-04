@@ -47,13 +47,13 @@ exports = function() {
 	
 			var response;
 			var header = xhrResult.getResponseHeader("Content-Type");
-			if (header.indexOf("application/json") === 0) {
+			if (header && header.indexOf("application/json") === 0) {
 				response = JSON.parse(xhrResult.responseText); }
 			else
-			if (header.indexOf("text/plain") === 0) {
+			if (header && header.indexOf("text/plain") === 0) {
 				response = xhrResult.responseText; }
 	 
-			(args.error) ? args.error(response,xhrResult) : Ti.API.error('Parse Client: Request Failed: ' + args.url);
+			(args.error) ? args.error(response,xhrResult) : Ti.API.error('Request Failed: ' + args.url);
 			
 		}
 	};

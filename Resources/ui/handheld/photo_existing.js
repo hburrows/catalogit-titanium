@@ -32,7 +32,7 @@ module.exports = function (success, error) {
             // upload image success
             success: function(response,xhrResult) {
               Ti.App.fireEvent('EntryUpdated');
-              Ti.App.fireEvent('EntryCreated');
+              Ti.App.fireEvent('EntryCreated', {'entry_id': entry_id});
             },
             error: function(response, xhrResult) {
               Ti.UI.createAlertDialog({
