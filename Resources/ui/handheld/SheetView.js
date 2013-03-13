@@ -2,6 +2,10 @@ exports = function (parent) {
 
   "use strict";
 
+  return {
+    
+  };
+
 	var washView,
 			containerView,
 			sheetView,
@@ -106,8 +110,8 @@ exports = function (parent) {
 	});
 
 	return {
-		'show': function () {
-			showSheetView();
+		'show': function (title, color, view) {
+			showSheetView(title, color, view);
 		},
 		'hide': function () {
 			hideSheetView();

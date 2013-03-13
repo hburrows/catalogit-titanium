@@ -1,38 +1,22 @@
-"use strict";
 
+module.exports = function() {
 
-//var ENDPOINT = 'http://10.0.1.17:8000/';
-var ENDPOINT = 'http://10.0.1.20:8000/';
-//var ENDPOINT = 'http://localhost:8000/';
-//var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
+  "use strict";
 
-var STATUS_RESOURCE = ENDPOINT + 'status/';
-
-var LOGIN_RESOURCE = ENDPOINT + 'login';
-var LOGOUT_RESOURCE = ENDPOINT + 'logout';
-
-var SERVICES_RESOURCE = ENDPOINT + 'users/self/services/';
-var SERVICE_RESOURCE = ENDPOINT + 'users/self/services/%service_type%/';
-
-var ENTRIES_RESOURCE = ENDPOINT + 'users/self/entries/';
-var ENTRY_RESOURCE = ENDPOINT + 'users/self/entries/%entry_id%/';
-
-var ENTRY_IMAGE_RESOURCE = ENDPOINT + 'users/self/entries/%entry_id%/images/';
-
-exports = function() {
-
+  var GLOBALS = require('globals');
+  
 	var xhr = Ti.Network.createHTTPClient();
 
 	var that = {
 
 		handleOnLoad: function(args, xhrResult) {
 			var response;
-			var cookies = xhrResult.getResponseHeader('Set-Cookie');
-			var header = xhrResult.getResponseHeader("Content-Type");
-			if (header.indexOf('application/json') === 0) {
+			//var cookies = xhrResult.getResponseHeader('Set-Cookie');
+			var contentType = xhrResult.getResponseHeader("Content-Type");
+			if (contentType.indexOf('application/json') === 0) {
 				response = JSON.parse(xhrResult.responseText); }
 			else
-			if (header.indexOf('text/plain') === 0) {
+			if (contentType.indexOf('text/plain') === 0) {
 				response = xhrResult.responseText; }
 	
 			(args.success) ? args.success(response, xhrResult) : Ti.API.debug('Parse Client: Request Successful');			
@@ -41,16 +25,16 @@ exports = function() {
 		handleOnError: function(args, xhrResult, ignoreCodes) {
 
 			if (xhrResult.status !== 200) {
-				Ti.API.debug('jobapi Client: Request FAILED with ' + xhrResult.status +' status code and message: ' + xhrResult.responseText);
+				Ti.API.debug('jotapi Client: Request FAILED with ' + xhrResult.status +' status code and message: ' + xhrResult.responseText);
 				alert('Request FAILED with ' + xhrResult.status +' status code and message: ' + xhrResult.responseText);
 			}
 	
 			var response;
-			var header = xhrResult.getResponseHeader("Content-Type");
-			if (header && header.indexOf("application/json") === 0) {
+			var contentType = xhrResult.getResponseHeader("Content-Type");
+			if (contentType && contentType.indexOf("application/json") === 0) {
 				response = JSON.parse(xhrResult.responseText); }
 			else
-			if (header && header.indexOf("text/plain") === 0) {
+			if (contentType && contentType.indexOf("text/plain") === 0) {
 				response = xhrResult.responseText; }
 	 
 			(args.error) ? args.error(response,xhrResult) : Ti.API.error('Request Failed: ' + args.url);
@@ -70,7 +54,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 			
-			xhr.open('GET', STATUS_RESOURCE);
+			xhr.open('GET', GLOBALS.api.STATUS_RESOURCE);
 			xhr.send('');
 		},
 		
@@ -84,7 +68,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 			
-			xhr.open('POST', LOGIN_RESOURCE);
+			xhr.open('POST', GLOBALS.api.LOGIN_RESOURCE);
 			xhr.setRequestHeader('Content-Type','application/json');
 			xhr.send(JSON.stringify({"username": args.username, "password": args.password}));
 		},
@@ -98,9 +82,25 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 			
-			xhr.open('POST', LOGOUT_RESOURCE);
+			xhr.open('POST', GLOBALS.api.LOGOUT_RESOURCE);
 			xhr.send('');
 		},
+
+    userCreate: function (args) {
+      
+      xhr.onload = function(e) {
+        that.handleOnLoad(args, this);
+      };
+
+      xhr.onerror = function(e) {
+        that.handleOnError(args, this);
+      };
+      
+      xhr.open('POST', GLOBALS.api.USER_RESOURCE);
+      xhr.setRequestHeader('Content-Type','application/json');
+      xhr.send(JSON.stringify({"username": args.username, "password": args.password}));
+      
+    },
 
 		addService: function(args) {
 			xhr.onload = function(e) {
@@ -115,7 +115,7 @@ exports = function() {
 				service_add_req.access_token_secret = args.access_token_secret;
 			}
 
-			xhr.open('POST', SERVICES_RESOURCE);
+			xhr.open('POST', GLOBALS.api.SERVICES_RESOURCE);
 			xhr.setRequestHeader('Content-Type','application/json');
 			xhr.send(JSON.stringify(service_add_req));
 		},
@@ -128,7 +128,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 
-			xhr.open('DELETE', SERVICE_RESOURCE.replace('%service_type%',args.service_type));
+			xhr.open('DELETE', GLOBALS.api.SERVICE_RESOURCE.replace('%service_type%',args.service_type));
 			xhr.send();
 
 		},
@@ -142,7 +142,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 			
-			xhr.open('GET', ENTRIES_RESOURCE);
+			xhr.open('GET', GLOBALS.api.ENTRIES_RESOURCE);
 			xhr.setRequestHeader('Content-Type','application/json');
 			xhr.send('');
 		},
@@ -162,7 +162,7 @@ exports = function() {
 				attributes: args.attributes
 			};
 
-			xhr.open('POST', ENTRIES_RESOURCE);
+			xhr.open('POST', GLOBALS.api.ENTRIES_RESOURCE);
 			xhr.setRequestHeader('Content-Type','application/json');
 			xhr.send(JSON.stringify(create_request));
 			
@@ -182,7 +182,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 
-      xhr.open('GET', ENTRY_RESOURCE.replace('%entry_id%',args.entry_id));
+      xhr.open('GET', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%',args.entry_id));
       xhr.send('');
 		},
 
@@ -200,7 +200,7 @@ exports = function() {
 				that.handleOnError(args, this);
 			};
 
-      xhr.open('POST', ENTRY_IMAGE_RESOURCE.replace('%entry_id%',args.entry_id));
+      xhr.open('POST', GLOBALS.api.ENTRY_IMAGE_RESOURCE.replace('%entry_id%',args.entry_id));
       xhr.send({image: args.media,
 								cropRect: args.cropRect});
 		}

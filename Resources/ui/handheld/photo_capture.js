@@ -1,3 +1,7 @@
+/*
+ * 
+ */
+
 module.exports = function (success, error) {
 
   "use strict";
@@ -12,6 +16,17 @@ module.exports = function (success, error) {
   
     success:function(event) {
   
+      var globals = require('globals');
+      globals.currentMedia = event.media;
+
+      Ti.App.fireEvent('photo:edit', {
+        'media': event.media,
+        'mediaType': event.mediaType,
+        'cropRect': event.cropRect
+      });
+
+      return;
+/*
       // create a jotclient object; create a new entry and attach a photo to it
       var jotClient = require('utils/jotclient');
       var client = jotClient();
@@ -59,11 +74,7 @@ module.exports = function (success, error) {
         }
 
       });
-  
-    },
-
-    cancel: function() {
-      // user cancel -- ignore
+*/  
     },
 
     error:function(error) {

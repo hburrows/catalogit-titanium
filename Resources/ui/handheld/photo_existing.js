@@ -4,8 +4,23 @@ module.exports = function (success, error) {
 
   Ti.Media.openPhotoGallery({
 
+    allowEditing: false,
+    mediaTypes: [Ti.Media.MEDIA_TYPE_PHOTO],
+    animated: true,
+
     success:function(event) {
-  
+
+      var _globals = require('globals')
+      _globals.currentMedia = event.media;
+
+      Ti.App.fireEvent('photo:edit', {
+        'media': event.media,
+        'mediaType': event.mediaType,
+        'cropRect': event.cropRect
+      });
+
+      return;
+/*
       // create a jotclient object; create a new entry and attach a photo to it
       var jotClient = require('utils/jotclient');
       var client = jotClient();
@@ -53,20 +68,13 @@ module.exports = function (success, error) {
         }
 
       });
-  
-    },
-
-    cancel: function() {
-      // user cancel -- ignore
+*/
     },
 
     error:function(error) {
-      //win.close();
       alert(error);
-    },
+    }    
 
-    allowEditing: true,
-    mediaTypes: [Ti.Media.MEDIA_TYPE_PHOTO]
   });
 
 }

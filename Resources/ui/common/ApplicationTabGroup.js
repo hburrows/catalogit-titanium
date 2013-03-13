@@ -1,7 +1,10 @@
+/*
+ * 
+ */
 
-"use strict";
+module.exports = function (tabList) {
 
-function ApplicationTabGroup(tabList) {
+  "use strict";
 
 	//create module instance
 	var self = Ti.UI.createTabGroup();
@@ -18,12 +21,10 @@ function ApplicationTabGroup(tabList) {
 			icon: tabList[i].icon,
 			window: win
 		});
+
 		win.containingTab = tab;
-		
 		self.addTab(tab);
 	}
 
 	return self;
 }
-
-module.exports = ApplicationTabGroup;

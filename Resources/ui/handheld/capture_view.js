@@ -154,6 +154,24 @@ Ti.App.addEventListener("EntryCreated", function (e) {
   return;
 });
 
+Ti.App.addEventListener("photo:edit", function (e) {
+
+  Ti.API.info("event - photo:edit");
+
+  var _globals = require('globals')
+  var currentMedia = _globals.currentMedia;
+
+  var makePhotoEditWindow = require('ui/common/photo_edit'),
+      w = makePhotoEditWindow(currentMedia);
+      
+  w.open({
+    modal:true,
+    transition: Ti.UI.iPhone.AnimationStyle.FLIP_FROM_LEFT
+  });
+
+  return;
+});
+
 /*  
 	Ti.Media.showCamera({
 

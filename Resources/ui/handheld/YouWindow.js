@@ -7,7 +7,7 @@ function doLogin() {
 	
 	Ti.App.Properties.setBool("signedin",false);
 
-	var loginWindow = require('ui/common/LoginWindow');
+	var loginWindow = require('ui/common/login_window');
 	var loginWindowInstance = loginWindow()
 	loginWindowInstance.open();
 }

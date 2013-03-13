@@ -31,7 +31,6 @@ function getIsTablet() {
 	return osname === 'ipad' || (osname === 'android' && (width > 899 || height > 899));
 }
 
-
 function showTabs(isTablet) {
 
 	var Capture,
@@ -43,45 +42,59 @@ function showTabs(isTablet) {
 		Capture = require('ui/tablet/CaptureWindow');
 		Browse = require('ui/tablet/BrowseWindow');
 		You = require('ui/tablet/YouWindow');
-		Manage = require('ui/tablet/ManageWindow');
+		Manage = require('ui/tablet/manage_window');
 	}
 	else {
 		Capture = require('ui/handheld/CaptureWindow');
 		Browse = require('ui/handheld/BrowseWindow');
 		You = require('ui/handheld/YouWindow');
-		Manage = require('ui/handheld/ManageWindow');
+		Manage = require('ui/handheld/manage_window');
 	}
 
 	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
 	new ApplicationTabGroup([
-		{"name":"Capture","window":Capture,"icon":"/images/nav_post_jot.png"},
-		{"name":"Browse","window":Browse,"icon":"/images/tabs/KS_nav_ui.png"},
-		{"name":"Manage","window":Manage,"icon":"/images/tabs/KS_nav_views.png"},
-		{"name":"You","window":You,"icon":"/images/nav_profile.png"}
+		{"name": "Capture",
+		 "window": Capture,
+		 "icon":"/images/nav_post_jot.png"
+		},
+		{"name": "Browse",
+		 "window": Browse,
+		 "icon":"/images/tabs/KS_nav_ui.png"
+		},
+		{"name": "Manage",
+		 "window": Manage,
+		 "icon": "/images/tabs/KS_nav_views.png"
+		},
+		{"name": "You",
+		 "window": You,
+		 "icon":"/images/nav_profile.png"
+		}
 	]).open();
 
 }
 
 function doLogin(isTablet) {
-	var loginWindow = require('ui/common/LoginWindow');
+	var loginWindow = require('ui/common/login_window');
+  Ti.App.Properties.setBool("signedin",false);    
 	loginWindow().open();
 }
 
 // Handle successful login
-Ti.App.addEventListener("LoginSuccess", function(e){
+Ti.App.addEventListener("authentication:success", function(e){
 	// open tab group
 	showTabs(getIsTablet());
 });
 
 // This is a single context application with mutliple windows in a stack
+//
 (function() {
 
-	//determine platform and form factor and render approproate components
+	// determine platform and form factor and render approproate components
 	var osname = Ti.Platform.osname,
 			version = Ti.Platform.version,
 			height = Ti.Platform.displayCaps.platformHeight,
 			width = Ti.Platform.displayCaps.platformWidth;
-	
+
 	//considering tablet to have one dimension over 900px - this is imperfect, so you should feel free to decide
 	//yourself what you consider a tablet form factor for android
 	var isTablet = getIsTablet();
@@ -89,19 +102,18 @@ Ti.App.addEventListener("LoginSuccess", function(e){
 	var signedIn = Ti.App.Properties.getBool("signedin");
 	if (signedIn) {
 
-		var JOTClient = require('utils/jotclient');
-		var client = JOTClient();
+		var makeJOTClient = require('utils/jotclient');
+		var client = makeJOTClient();
 	
 		client.status({
 			success: function(response, xhrResult) {
 
-				// only if we think we're authenticated and the server says we're authenticate
+				// only if we think we're authenticated and the server says we're authenticated
 				// will we go to the tabs
 				if (response.authenticated) {
 					showTabs(isTablet);
 				}
 				else {
-					Ti.App.Properties.setBool("signedin",false);		
 					doLogin(isTablet);
 				}
 			},
@@ -113,7 +125,6 @@ Ti.App.addEventListener("LoginSuccess", function(e){
 		
 	}
 	else {
-		Ti.App.Properties.setBool("signedin",false);		
 		doLogin(isTablet);
 	}
 

@@ -1,7 +1,7 @@
 "use strict";
 
 //Ti.include('oauth_adapter.js')
-var social = require('lib/social');
+var social = require('vendor/social');
 
 var jotClient = require('utils/jotclient');
 

@@ -1,146 +1,169 @@
-"use strict";
-
 module.exports = function () {
 
+  "use strict";
+
+  var GLOBALS = require('globals');
+
 	var self = Ti.UI.createWindow({
-		title: L('signup'),
-		backgroundColor:'white',
-		//backgroundImage: 'images/bg_login.png'
+		'title': L('signup'),
+		'backgroundColor': '#fff',
+		'layout': 'vertical'
 	});
 	
+  // initialize to all modes
+  self.orientationModes = [
+    Ti.UI.PORTRAIT,
+    Ti.UI.LANDSCAPE_LEFT,
+    Ti.UI.LANDSCAPE_RIGHT
+  ];
+
 	self.showNavBar();
 
-	function doLogin(username, password) {
+  // DONE - NAV BAR BUTTON
+  var doneButton = Titanium.UI.createButton({
+    title:'Done',
+    style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
+  });
+  self.setRightNavButton(doneButton);
+  
+  doneButton.addEventListener('click', function () {
+    createNewUser(userNameField.value, passwordField.value);
+  });
+
+	function createNewUser(username, password) {
 	
-		var jotClient = require('utils/jotclient');
-		var client = jotClient();
-	
-		client.login({
-	
-			username: username,
-			password: password,
-	
-			success: function(response, xhr) {
-				Ti.App.Properties.setString('username',response.username);
-				Ti.App.Properties.setBool('signedin',true);
-				Ti.App.fireEvent("LoginSuccess");
-				
-				self.close();
-			},
-	
-			error: function(response,xhr) {
-				alert('Ugh, tiny keyboards, right?\n\nTry entering your username and password again.');
-			}
-		});	
+    var xhr = Ti.Network.createHTTPClient({
+      
+      // function called when the response data is available
+      onload : function(e) {
+
+        Ti.API.info(this.status + ": " + this.responseText);
+
+        var login = Ti.Network.createHTTPClient({
+          
+          // function called when the response data is available
+          onload : function(e) {
+    
+            Ti.API.info(this.status + ": " + this.responseText);
+    
+            var response,
+                contentType = this.getResponseHeader("Content-Type");
+    
+            // assuming JSON response on 200 response
+            
+            response = JSON.parse(this.responseText);
+    
+            Ti.App.Properties.setString('username',response.username);
+            Ti.App.Properties.setBool('signedin',true);
+            Ti.App.fireEvent("authentication:success");
+      
+            self.close();
+          },
+    
+          // function called when an error occurs, including a timeout
+          onerror : function(e) {
+            Ti.API.debug(this.status + ': ' + this.responseText);
+            alert('Unable to login as that new user.  Please try again.');
+          },
+    
+          timeout : 5000  // in milliseconds
+        });
+    
+        login.open('POST', GLOBALS.api.LOGIN_RESOURCE);
+        login.setRequestHeader('Content-Type','application/json');
+        login.send(JSON.stringify({"username": username, "password": password}));
+      },
+
+      // function called when an error occurs, including a timeout
+      onerror : function(e) {
+        Ti.API.debug(this.status + ': ' + this.responseText);
+        alert(this.responseText);
+      },
+
+      timeout : 5000  // in milliseconds
+    });
+
+    xhr.open('POST', GLOBALS.api.USER_RESOURCE);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.send(JSON.stringify({"username": username, "password": password}));
 	}
 	
-	var gridRowData = [];
-	
-	/*
-	var logo = Ti.UI.createImageView({
-		image:'../images/logo_login.png',
-		width:120,
-		height:44,
-		top:65
-	});
-	self.add(logo); */
-	
-	var label = Ti.UI.createLabel({
-		color:'#000000',
-		text:L('signupMessage'),
-		top: 20,
-		height:'auto',
-		width:'auto'
-	});
-	self.add(label);
-	
-	// email
-	var email = Ti.UI.createTableViewRow({
-		height:40,
-		selectionStyle:'NONE'
-	});
-	 
-	var emailLabel = Titanium.UI.createLabel({
-		text:L('username'),
-		//font:{fontSize:14,fontFamily:'MilanBold'},
-		left:10
-	});
-	 
-	email.add(emailLabel);
-	 
-	var emailTextField = Ti.UI.createTextField({
-		left:90,
-		hintText: 'username',
-		borderStyle:Ti.UI.INPUT_BORDERSTYLE_NONE,
-		autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE
-	});
-	
-	emailTextField.addEventListener('focus',function()
-	{
-		emailTextField.value = '';
-	});
-	
-	email.add(emailTextField);
-	
-	gridRowData.push(email);
-	
-	
-	// password
-	var password = Ti.UI.createTableViewRow({
-		height:40,
-		selectionStyle:'NONE'
-	});
-	 
-	var passwordLabel = Titanium.UI.createLabel({
-		text:L('password'),
-		//font:{fontSize:14,fontFamily:'MilanBold'},
-		left:10
-	});
-	 
-	password.add(passwordLabel);
-	 
-	var passwordTextField = Ti.UI.createTextField({
-		left:90,
-		hintText: 'supersecret',
-		borderStyle:Ti.UI.INPUT_BORDERSTYLE_NONE,
-		returnKeyType:Ti.UI.RETURNKEY_GO,
-		passwordMask:true
-	});
-	
-	passwordTextField.addEventListener('focus',function()
-	{
-		passwordTextField.value = '';
-	});
-	
-	password.add(passwordTextField);
-	
-	gridRowData.push(password);
-	
-	
-	// setup listeners for posting
-	//
-	emailTextField.addEventListener('return', function()
-	{
-		doLogin(emailTextField.value, passwordTextField.value);
-	});
-	
-	
-	passwordTextField.addEventListener('return', function()
-	{
-		doLogin(emailTextField.value, passwordTextField.value);
-	});
-	
-	
-	// create table and add row data
-	var table = Ti.UI.createTableView({
-		data:gridRowData,
-		style:Ti.UI.iPhone.TableViewStyle.GROUPED,
-		top:150,
-		backgroundColor:'transparent',
-		rowBackgroundColor:'white'
-	});
-	self.add(table);
-	
+  //
+  //  CREATE USERNAME FIELD
+  //
+  var userName = Titanium.UI.createLabel({
+    color:'#000',
+    text:'Username',
+    left:30, top:20,
+    width:Ti.UI.SIZE    
+  });
+  
+  self.add(userName);
+  
+  var userNameField = Titanium.UI.createTextField({
+    hintText:'enter username',
+    left:30,
+    right: 30, height:35,
+    borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
+    autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE
+  });
+
+  userNameField.addEventListener('focus', function () {
+    userNameField.value = '';
+  });
+
+  userNameField.addEventListener('return', function()
+  {
+    createNewUser(userNameField.value, passwordField.value);
+  });  
+
+  self.add(userNameField);
+  
+  //
+  //  CREATE PASSWORD FIELD
+  //
+  var password = Titanium.UI.createLabel({
+    color:'#000',
+    text:'Password',
+    left:30, top:10,
+    width:Ti.UI.SIZE
+  });
+  
+  self.add(password);
+  
+  var passwordField = Titanium.UI.createTextField({
+    hintText:'enter password',
+    left:30,
+    right:30, height:35,
+    borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
+    autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE,
+    returnKeyType:Ti.UI.RETURNKEY_JOIN,
+    passwordMask:true    
+  });
+  
+  passwordField.addEventListener('focus', function () {
+    passwordField.value = '';
+  });
+
+  passwordField.addEventListener('return', function()
+  {
+    createNewUser(userNameField.value, passwordField.value);
+  });
+
+  self.add(passwordField);
+
+  //
+  // SIGN UP MESSAGE
+  //
+  var label = Ti.UI.createLabel({
+    color: '#000000',
+    text: L('signupMessage'),
+    top: 20, left: 30,
+    right: 30, height: Ti.UI.SIZE,
+    textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER    
+  });
+  self.add(label);
+  
 	return self;
 }
 
