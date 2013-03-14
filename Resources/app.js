@@ -13,6 +13,9 @@
  *  
  */
 
+var GLOBALS = require('globals'),
+    mainPage
+
 //bootstrap and check dependencies
 if (Ti.version < 1.8 ) {
 	alert('Sorry - this application template requires Titanium Mobile SDK 1.8 or later');
@@ -31,28 +34,20 @@ function getIsTablet() {
 	return osname === 'ipad' || (osname === 'android' && (width > 899 || height > 899));
 }
 
-function showTabs(isTablet) {
+function showTabs() {
 
 	var Capture,
 			Browse,
 			You,
 			Manage;
 	
-	if (isTablet) {
-		Capture = require('ui/tablet/CaptureWindow');
-		Browse = require('ui/tablet/BrowseWindow');
-		You = require('ui/tablet/YouWindow');
-		Manage = require('ui/tablet/manage_window');
-	}
-	else {
-		Capture = require('ui/handheld/CaptureWindow');
-		Browse = require('ui/handheld/BrowseWindow');
-		You = require('ui/handheld/YouWindow');
-		Manage = require('ui/handheld/manage_window');
-	}
+	Capture = require('ui/' + GLOBALS.layout + '/CaptureWindow');
+	Browse = require('ui/' + GLOBALS.layout + '/BrowseWindow');
+	You = require('ui/' + GLOBALS.layout + '/YouWindow');
+	Manage = require('ui/' + GLOBALS.layout + '/manage_window');
 
 	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
-	new ApplicationTabGroup([
+	mainPage = new ApplicationTabGroup([
 		{"name": "Capture",
 		 "window": Capture,
 		 "icon":"/images/nav_post_jot.png"
@@ -69,20 +64,32 @@ function showTabs(isTablet) {
 		 "window": You,
 		 "icon":"/images/nav_profile.png"
 		}
-	]).open();
+	]);
+	
+	mainPage.open();
 
 }
 
-function doLogin(isTablet) {
+function doLogin() {
+  /*
 	var loginWindow = require('ui/common/login_window');
   Ti.App.Properties.setBool("signedin",false);    
 	loginWindow().open();
+	*/
+  var welcomePage = require('ui/' + GLOBALS.layout + '/welcome_page');
+  welcomePage().open();
 }
 
 // Handle successful login
 Ti.App.addEventListener("authentication:success", function(e){
 	// open tab group
-	showTabs(getIsTablet());
+	showTabs();
+});
+
+// Handle logout
+Ti.App.addEventListener("authentication:logout", function(e){
+  var welcomePage = require('ui/' + GLOBALS.layout + '/welcome_page');
+  welcomePage().open();
 });
 
 // This is a single context application with mutliple windows in a stack
@@ -97,8 +104,9 @@ Ti.App.addEventListener("authentication:success", function(e){
 
 	//considering tablet to have one dimension over 900px - this is imperfect, so you should feel free to decide
 	//yourself what you consider a tablet form factor for android
-	var isTablet = getIsTablet();
 
+  GLOBALS.layout = getIsTablet() ? 'tablet' : 'handheld';
+  
 	var signedIn = Ti.App.Properties.getBool("signedin");
 	if (signedIn) {
 
@@ -111,10 +119,10 @@ Ti.App.addEventListener("authentication:success", function(e){
 				// only if we think we're authenticated and the server says we're authenticated
 				// will we go to the tabs
 				if (response.authenticated) {
-					showTabs(isTablet);
+					showTabs();
 				}
 				else {
-					doLogin(isTablet);
+					doLogin();
 				}
 			},
 
@@ -125,7 +133,7 @@ Ti.App.addEventListener("authentication:success", function(e){
 		
 	}
 	else {
-		doLogin(isTablet);
+		doLogin();
 	}
 
 }());

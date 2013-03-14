@@ -5,7 +5,7 @@
 module.exports = function (photoMedia) {
 
   "use strict";
-    
+
   var win = Titanium.UI.createWindow({
     backgroundColor: '#fff'
   });
@@ -38,7 +38,8 @@ module.exports = function (photoMedia) {
   });
   win.setRightNavButton(doneButton);
   
-  doneButton.addEventListener('click', function () {
+  doneButton.addEventListener('click', function (e) {
+    Ti.App.fireEvent('entry:created',{ media:photoMedia });
     win.close();
   });
 

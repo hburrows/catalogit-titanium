@@ -1,16 +1,23 @@
 
 /* Defined like this so we can use ENDPOINT in the declaration below */
 
-// var ENDPOINT = 'http://10.0.1.17:8000/'; // wireless
+//var ENDPOINT = 'http://10.0.1.17:8000/'; // wireless
 var ENDPOINT = 'http://10.0.1.20:8000/';   // wired
 //var ENDPOINT = 'http://localhost:8000/';
 //var ENDPOINT = 'http://jotapi.elasticbeanstalk.com/';
 
 var GLOBALS = {
 
-  'currentMedia': null,
+  lastEntry: {
+    id: null,
+    media: null
+  },
 
-  'api': {
+  currentMedia: null,
+
+  layout: 'handheld',
+
+  api: {
     ENDPOINT: ENDPOINT,
     
     STATUS_RESOURCE: ENDPOINT + 'api/status/',

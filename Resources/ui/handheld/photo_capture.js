@@ -6,9 +6,11 @@ module.exports = function (success, error) {
 
   "use strict";
 
+  var GLOBALS = require('globals');
+
   Ti.Media.showCamera({
 
-    allowEditing: true,
+//    allowEditing: true,
 //    mediaTypes: [Ti.Media.MEDIA_TYPE_PHOTO]
 
     //saveToPhotoGallery:true,

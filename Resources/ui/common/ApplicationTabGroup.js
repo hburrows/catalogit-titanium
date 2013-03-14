@@ -26,5 +26,10 @@ module.exports = function (tabList) {
 		self.addTab(tab);
 	}
 
+  // close the tab group on logout
+  Ti.App.addEventListener("authentication:logout", function (e) {
+    self.close();
+  });
+
 	return self;
 }

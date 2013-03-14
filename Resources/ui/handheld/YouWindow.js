@@ -1,64 +1,62 @@
-"use strict";
+module.exports = function (title) {
 
-var createServicesWindow = require('ui/handheld/ServicesWindow')
-
-function doLogin() {
-
-	
-	Ti.App.Properties.setBool("signedin",false);
-
-	var loginWindow = require('ui/common/login_window');
-	var loginWindowInstance = loginWindow()
-	loginWindowInstance.open();
-}
-
-function ApplicationWindow(title) {
-
-	var jotClient = require('utils/jotclient');
+  "use strict";
+  
+  var GLOBALS = require('globals');
 
 	var self = Ti.UI.createWindow({
 		title:title,
-		backgroundColor:'white',
+		backgroundColor: '#fff',
 		barColor:'#036'
 	});
 	
 	var services = Ti.UI.createButton({
-		height:44,
-		width:200,
-		title:L('services'),
-		top:20
+		height: 44,
+		width: 200,
+		title: L('services'),
+		top: 20
 	});
 	self.add(services);
 	
 	var logout = Ti.UI.createButton({
-		height:44,
-		width:200,
-		title:L('logout'),
-		top:80
+		height: 44,
+		width: 200,
+		title: L('logout'),
+		top: 80
 	});
 	self.add(logout);
 	
 	services.addEventListener('click', function() {
-		servicesWindow = createServicesWindow();
+    var createServicesWindow = require('ui/handheld/ServicesWindow');
+		var servicesWindow = createServicesWindow();
 		self.containingTab.open(servicesWindow);
 	});
 
 	logout.addEventListener('click', function() {
 
-		var client = jotClient();
-		
-		client.logout({
-			success: function(response, cookie) {
-				doLogin();
-			},
-			error: function(response,xhr) {
-				alert('Error attempting to logout');
-			}
-		});
+    var xhr = Ti.Network.createHTTPClient({
+      
+      // function called when the response data is available
+      onload : function(e) {
+        Ti.App.Properties.setBool("signedin",false);
+        Ti.App.fireEvent("authentication:logout");
+      },
+
+      // function called when an error occurs, including a timeout
+      onerror : function(e) {
+        Ti.API.debug(this.status + ': ' + this.error);
+        alert(e.error);
+      },
+
+      timeout : 5000  // in milliseconds
+    });
+
+    xhr.open('POST', GLOBALS.api.LOGOUT_RESOURCE);
+    xhr.send();
 
 	});
 
 	return self;
 }
 
-module.exports = ApplicationWindow;
+

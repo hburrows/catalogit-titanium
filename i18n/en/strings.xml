@@ -6,8 +6,9 @@
 	<string name="openWindow">Open New Window</string>
 	<string name="newWindow">New Window</string>
 
-	<string name="signupMessage">To use CatalogIt you need to sign up for an account.  Accounts are free.  You need an account to securely store your catalog in the cloud as well as access your catalog from different devices (computer, phone, etc.).</string>
-	<string name="loginMessage">Sign in to CatalogIt</string>
+	<string name="signupMessage">To use CatalogIt you need to create an account.  Accounts are free.  Accounts allow you to document and store your catalog in the cloud and access it from anywhere.</string>
+	<string name="loginMessage">Log In to CatalogIt</string>
+	<string name="disclaimer">By signing in, I accept CatalogIt's Terms of Service and Privacy Policy</string>
 
 	<string name="signup">Create Account</string>
 	<string name="services">Services</string>

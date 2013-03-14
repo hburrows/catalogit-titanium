@@ -1,37 +1,15 @@
+/*
+ * 
+ */
+
 module.exports = function () {
 
   "use strict";
 
   var GLOBALS = require('globals');
 
-	var self = Ti.UI.createWindow({
-		'title': L('signup'),
-		'backgroundColor': '#fff',
-		'layout': 'vertical'
-	});
-	
-  // initialize to all modes
-  self.orientationModes = [
-    Ti.UI.PORTRAIT,
-    Ti.UI.LANDSCAPE_LEFT,
-    Ti.UI.LANDSCAPE_RIGHT
-  ];
-
-	self.showNavBar();
-
-  // DONE - NAV BAR BUTTON
-  var doneButton = Titanium.UI.createButton({
-    title:'Done',
-    style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
-  });
-  self.setRightNavButton(doneButton);
+  function createNewUser(username, password) {
   
-  doneButton.addEventListener('click', function () {
-    createNewUser(userNameField.value, passwordField.value);
-  });
-
-	function createNewUser(username, password) {
-	
     var xhr = Ti.Network.createHTTPClient({
       
       // function called when the response data is available
@@ -56,8 +34,6 @@ module.exports = function () {
             Ti.App.Properties.setString('username',response.username);
             Ti.App.Properties.setBool('signedin',true);
             Ti.App.fireEvent("authentication:success");
-      
-            self.close();
           },
     
           // function called when an error occurs, including a timeout
@@ -86,24 +62,60 @@ module.exports = function () {
     xhr.open('POST', GLOBALS.api.USER_RESOURCE);
     xhr.setRequestHeader('Content-Type','application/json');
     xhr.send(JSON.stringify({"username": username, "password": password}));
-	}
-	
+  }
+  
+  // create the window to hold all the "sub" windows in the navigation group
+  var self = Titanium.UI.createWindow({
+    backgroundColor: '#fff',
+    title:'Create Account',
+    barColor: 'blue',
+    navBarHidden: false
+  });
+
+  // initialize to all modes
+  self.orientationModes = [
+    Ti.UI.PORTRAIT,
+    Ti.UI.LANDSCAPE_LEFT,
+    Ti.UI.LANDSCAPE_RIGHT
+  ];
+
+  //
+  // NAVBAR NEXT BUTTON
+  //
+  //
+  var navebarNext = Titanium.UI.createButton({
+    title:'Create',
+    style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
+  });
+  self.setRightNavButton(navebarNext);
+
+  navebarNext.addEventListener('click', function () {
+    createNewUser(userNameField.value, passwordField.value);
+  });
+
+  var containerView = Ti.UI.createView({
+    top: 0, width: Ti.UI.FILL,
+    layout: 'vertical'
+  });
+  self.add(containerView);
+
   //
   //  CREATE USERNAME FIELD
   //
+  /*
   var userName = Titanium.UI.createLabel({
     color:'#000',
     text:'Username',
     left:30, top:20,
     width:Ti.UI.SIZE    
   });
-  
-  self.add(userName);
-  
+  containerView.add(userName);
+  */
+
   var userNameField = Titanium.UI.createTextField({
-    hintText:'enter username',
-    left:30,
-    right: 30, height:35,
+    hintText:'Email Address',
+    left: 20, top: 20,
+    right: 20, height:35,
     borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
     autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE
   });
@@ -117,24 +129,25 @@ module.exports = function () {
     createNewUser(userNameField.value, passwordField.value);
   });  
 
-  self.add(userNameField);
+  containerView.add(userNameField);
   
   //
   //  CREATE PASSWORD FIELD
   //
+  /*
   var password = Titanium.UI.createLabel({
     color:'#000',
     text:'Password',
     left:30, top:10,
     width:Ti.UI.SIZE
   });
-  
-  self.add(password);
-  
+  containerView.add(password);
+  */
+
   var passwordField = Titanium.UI.createTextField({
-    hintText:'enter password',
-    left:30,
-    right:30, height:35,
+    hintText:'Password',
+    left:20, top: 10,
+    right:20, height:35,
     borderStyle:Titanium.UI.INPUT_BORDERSTYLE_ROUNDED,
     autocapitalization: Titanium.UI.TEXT_AUTOCAPITALIZATION_NONE,
     returnKeyType:Ti.UI.RETURNKEY_JOIN,
@@ -150,7 +163,18 @@ module.exports = function () {
     createNewUser(userNameField.value, passwordField.value);
   });
 
-  self.add(passwordField);
+  containerView.add(passwordField);
+
+  var createButton = Ti.UI.createButton({
+    title: L('Create Account'),
+    left: 20, top: 20,
+    right: 20
+  });
+  containerView.add(createButton);
+  
+  createButton.addEventListener('click', function() {
+    createNewUser(userNameField.value, passwordField.value);
+  });
 
   //
   // SIGN UP MESSAGE
@@ -162,8 +186,20 @@ module.exports = function () {
     right: 30, height: Ti.UI.SIZE,
     textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER    
   });
-  self.add(label);
-  
-	return self;
-}
+  containerView.add(label);
 
+  //
+  // DISCLAIMER MESSAGE
+  //
+  var label = Ti.UI.createLabel({
+    color: '#000000',
+    text: L('disclaimer'),
+    bottom: 20, left: 20,
+    right: 20, height: Ti.UI.SIZE,
+    font: {fontSize:12},
+    textAlign: Ti.UI.TEXT_ALIGNMENT_CENTER   
+  });
+  self.add(label);
+
+  return self;
+}
