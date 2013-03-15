@@ -2,7 +2,7 @@
  * 
  */
 
-module.exports = function (win, labels) {
+module.exports = function (parent, labels) {
 
   "use strict";
 
@@ -13,7 +13,7 @@ module.exports = function (win, labels) {
 			titleLabel,
 			parentView = null;
 
-  var winRect = win.getRect();
+  var winRect = parent.getRect();
 
   var containerPadding = 40,
       containerWidth = winRect.width - (containerPadding * 2),
@@ -21,8 +21,8 @@ module.exports = function (win, labels) {
 
   function showSheetView(parent) {
 
-    win.add(washView);
-    win.add(containerView);
+    parent.add(washView);
+    parent.add(containerView);
 
     containerView.animate({
       top: containerPadding,
@@ -40,8 +40,8 @@ module.exports = function (win, labels) {
         curve: Titanium.UI.ANIMATION_CURVE_EASE_OUT
       },
       function() {
-        win.remove(containerView);
-        win.remove(washView);
+        parent.remove(containerView);
+        parent.remove(washView);
       }
     );
 
@@ -79,7 +79,10 @@ module.exports = function (win, labels) {
   var padding = 10,
       width = Math.round((containerWidth - (padding * 4)) / 3);
 
-  var maxRows = 3;
+  var maxRows = 3,
+      maxCells = 8,
+      cell,
+      label;
 
   for (outIdx = 0, outMax = maxRows; outIdx < outMax; outIdx += 1) {
 
@@ -93,7 +96,7 @@ module.exports = function (win, labels) {
 
       var left = inIdx * (padding + width) + padding;
 
-      var cell = Ti.UI.createView({
+      cell = Ti.UI.createView({
         backgroundColor:'#666',
         top: padding,
         left: left,
@@ -103,16 +106,18 @@ module.exports = function (win, labels) {
       });
       row.add(cell);
 
-      var label = Ti.UI.createLabel({
-        color:'#fff',
-        font:{font:'Avenir',fontSize:14,fontWeight:'bold'},
-        text: labels[(outIdx * maxRows) + inIdx].title,
-        touchEnabled:false,
-        textAlign:'TEXT_ALIGNMENT_CENTER'
-      });
-      cell.add(label);
+      if ((outIdx * maxRows) + inIdx < maxCells) {
+        label = Ti.UI.createLabel({
+          color:'#fff',
+          font:{font:'Avenir',fontSize:14,fontWeight:'bold'},
+          text: labels[(outIdx * maxRows) + inIdx].title,
+          touchEnabled:false,
+          textAlign:'TEXT_ALIGNMENT_CENTER'
+        });
+        cell.add(label);
+      }
     }
-    
+
     gridData.push(row);
   }
 
@@ -126,6 +131,7 @@ module.exports = function (win, labels) {
 
   tableView.addEventListener('click', function(e) {
     hideSheetView();
+    parent.fireEvent('item:select', {'item_name': '<<item_label>>'});
   });
 
   var closeBtn = Titanium.UI.createButton({

@@ -20,63 +20,42 @@ module.exports = function (success, error) {
   
       var globals = require('globals');
       globals.currentMedia = event.media;
+      GLOBALS.currentMediaType = 'photo';
+      GLOBALS.currentMediaId = null;
+      
+      Ti.App.fireEvent('photo:edit');
 
-      Ti.App.fireEvent('photo:edit', {
-        'media': event.media,
-        'mediaType': event.mediaType,
-        'cropRect': event.cropRect
+      // upload the photo.  we can't do anything with the photo regarding using it
+      // to create a new entry until it's successfully updated.  The "signal" for 
+      // successful update is a non-null currentMediaId
+      var xhr = Ti.Network.createHTTPClient({
+        
+        // function called when the response data is available
+        onload : function(e) {
+          var response = JSON.parse(this.responseText); 
+          GLOBALS.currentMediaId = response.id;
+        },
+  
+        // function called when an error occurs, including a timeout
+        onerror : function(e) {
+          Ti.API.debug(this.status + ': ' + this.error);
+          if (!this.connected && this.status === 0) {
+            alert(e.error);
+          }
+          else {
+            alert(this.responseText);
+          }
+        },
+  
+        timeout : 30000  // in milliseconds
+
       });
+  
+      xhr.open('POST', GLOBALS.api.IMAGES_RESOURCE);
+      xhr.send({image: event.media,
+                cropRect: null});  
 
       return;
-/*
-      // create a jotclient object; create a new entry and attach a photo to it
-      var jotClient = require('utils/jotclient');
-      var client = jotClient();
-
-      client.createEntry({
-
-        entry_type: "photo",
-        attributes: {},
-
-        // create activity success
-        success: function(response,xhrResult) {
-
-          Ti.App.fireEvent('EntryUpdated');
-              
-          var entry_id = response.id;
-
-          client.uploadImage({
-
-            entry_id: entry_id,
-            media: event.media,
-            mediaType: event.mediaType,
-            cropRect: event.cropRect,
-      
-            // upload image success
-            success: function(response,xhrResult) {
-              Ti.App.fireEvent('EntryUpdated');             
-              Ti.App.fireEvent('EntryCreated', {'entry_id': entry_id});
-            },
-            error: function(response, xhrResult) {
-              Ti.UI.createAlertDialog({
-                    title:'Upload Error',
-                    message:'status code: ' + xhrResult.status + ', message: ' + response
-              }).show();                    
-            }
-    
-          });
-
-        },
-
-        error: function(response, xhrResult) {
-          Ti.UI.createAlertDialog({
-                title:'Create Activity Error',
-                message:'status code: ' + xhrResult.status + ', message: ' + response
-          }).show();                    
-        }
-
-      });
-*/  
     },
 
     error:function(error) {

@@ -134,7 +134,7 @@ module.exports = function () {
   var message5 = Ti.UI.createLabel({
     width: '80%',
     center: '50%',
-    top: '10%',
+    top: '65%',
     text: 'It costs nothing to get started so what\'s stopping you.  Click \'Register\' now and let\'s get going.',
     font: {fontSize: 16, fontWeight: 'bold'},
     color: '#fff',

@@ -110,26 +110,54 @@ Ti.App.addEventListener("authentication:logout", function(e){
 	var signedIn = Ti.App.Properties.getBool("signedin");
 	if (signedIn) {
 
-		var makeJOTClient = require('utils/jotclient');
-		var client = makeJOTClient();
-	
-		client.status({
-			success: function(response, xhrResult) {
+    // check if the backend service is responding so we can provide a good UX if
+    // not
+    var xhr = Ti.Network.createHTTPClient({
+      
+      // function called when the response data is available
+      onload : function(e) {
 
-				// only if we think we're authenticated and the server says we're authenticated
-				// will we go to the tabs
-				if (response.authenticated) {
-					showTabs();
-				}
-				else {
-					doLogin();
-				}
-			},
+        var response = JSON.parse(this.responseText); 
 
-			error: function(response, xhrResult) {
-				alert('Error! ' + JSON.stringify(response) + '.  Application and service are not currently available');
-			}
-		});
+        // only if we think we're authenticated and the server says we're authenticated
+        // will we go to the tabs
+        if (response.authenticated) {
+          showTabs();
+        }
+        else {
+          doLogin();
+        }
+      },
+
+      // function called when an error occurs, including a timeout
+      onerror : function(e) {
+
+        Ti.API.debug(this.status + ': ' + this.error);
+
+        var response;
+        var contentType = this.getResponseHeader("Content-Type");
+        if (contentType && contentType.indexOf("application/json") === 0) {
+          response = JSON.parse(this.responseText);
+        }
+        else
+        if (contentType && contentType.indexOf("text/plain") === 0) {
+          response = '"' + this.responseText + '"';
+        }
+
+        if (!this.connected && this.status === 0) {
+          alert('Application and service are not currently available.' + (response ? '  ' + JSON.stringify(response) : ''));
+        }
+        else {
+          alert(this.responseText);
+        }
+      },
+
+      timeout : 5000  // in milliseconds
+
+    });
+
+    xhr.open('GET', GLOBALS.api.STATUS_RESOURCE);
+    xhr.send('');
 		
 	}
 	else {
