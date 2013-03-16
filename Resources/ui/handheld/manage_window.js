@@ -6,8 +6,6 @@ module.exports = function (title) {
 
   "use strict";
 
-	var jotClient = require('utils/jotclient');
-
 	var self = Ti.UI.createWindow({
 		title:title,
 		backgroundColor:'white',

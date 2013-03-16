@@ -7,6 +7,7 @@ module.exports = function (photoMedia) {
   "use strict";
 
   var GLOBALS = require('globals'),
+      createHTTPClient = require('lib/http_client_wrapper'),
       rdfClass = null;
 
   var win = Titanium.UI.createWindow({
@@ -23,10 +24,45 @@ module.exports = function (photoMedia) {
     Ti.UI.LANDSCAPE_RIGHT
   ];
 
+  // WINDOW ACTIVITY INDICATOR
+  var activityIndicator = Ti.UI.createActivityIndicator({
+    color: '#000',
+    font: {fontSize:16, fontWeight:'bold'},
+    message: 'Loading...',
+    style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
+    center: '50%', bottom: '10%',
+    height:Ti.UI.SIZE,
+    width:Ti.UI.SIZE
+  }); 
+  win.add(activityIndicator);
+  
   // EVENT LISTENERS
-  win.addEventListener('item:select', function (e) {
-    alert('class selected: ' + e.item_name);
-    rdfClass = e.item_name;    
+  win.addEventListener('item:select', function (selectEvt) {
+    
+    activityIndicator.show();
+ 
+    // check if the service is responding
+    var xhr = createHTTPClient({
+      
+      // function called when the response data is available
+      onload : function(e) {
+        var response = JSON.parse(this.responseText); 
+        activityIndicator.hide();
+        alert('Got all the properties for ' + selectEvt.name);
+       },
+      
+      onerror: function (e) {
+        activityIndicator.hide();
+        this.__cit_handle_error(e);
+      },
+      
+      timeout: 30000
+
+    });
+
+    xhr.open('GET', GLOBALS.api.CLASSES_RESOURCE + selectEvt.id + '/');
+    xhr.send('');
+    
   });
 
   // CANCEL - NAV BAR BUTTON
@@ -150,8 +186,10 @@ module.exports = function (photoMedia) {
 
   newSubjectButton.addEventListener('click', function (e) {
 
+    activityIndicator.show();
+
     // check if the service is responding
-    var xhr = Ti.Network.createHTTPClient({
+    var xhr = createHTTPClient({
       
       // function called when the response data is available
       onload : function(e) {
@@ -176,39 +214,24 @@ module.exports = function (photoMedia) {
           var rowIdx = Math.floor(idx / itemsPerRow),
               columnIdx = idx - (rowIdx * itemsPerRow);
 
-          classes.push({title: response[idx].name});
+          classes.push({title: response[idx].name, 'id': response[idx]['class']});
         }
+
+        activityIndicator.hide();
         
-        var newSheetView = require('/ui/common/sheet_view');
-        var sheetView = newSheetView(win, classes);
+        var createPickerView = require('/ui/common/palette_picker');
+        var sheetView = createPickerView(win, classes);
+
         sheetView.show(win, classes);
   
       },
-
-      // function called when an error occurs, including a timeout
-      onerror : function(e) {
-
-        Ti.API.debug(this.status + ': ' + this.error);
-
-        var response;
-        var contentType = this.getResponseHeader("Content-Type");
-        if (contentType && contentType.indexOf("application/json") === 0) {
-          response = JSON.parse(this.responseText);
-        }
-        else
-        if (contentType && contentType.indexOf("text/plain") === 0) {
-          response = this.responseText;
-        }
-
-        if (!this.connected && this.status === 0) {
-          alert('Application and service are not currently available.  ' + JSON.stringify(response));
-        }
-        else {
-          alert(this.responseText);
-        }
+      
+      onerror: function (e) {
+        activityIndicator.hide();
+        this.__cit_handle_error(e);
       },
-
-      timeout : 10000  // in milliseconds
+      
+      timeout: 30000
 
     });
 
@@ -233,7 +256,7 @@ module.exports = function (photoMedia) {
       {title: 'Zuni Fetish 1'}, {title: 'Zuni Fetish 2'}, {title: 'More...'}
     ];
 
-    var newSheetView = require('/ui/common/sheet_view');
+    var newSheetView = require('/ui/common/palette_picker');
     var sheetView = newSheetView(win, subjects);
     sheetView.show(win, subjects);
   

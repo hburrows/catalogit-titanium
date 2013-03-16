@@ -14,8 +14,6 @@ function doLogin() {
 
 function ApplicationWindow(title) {
 
-	var jotClient = require('utils/jotclient');
-
 	var self = Ti.UI.createWindow({
 		title:title,
 		backgroundColor:'white',
@@ -41,21 +39,6 @@ function ApplicationWindow(title) {
 	services.addEventListener('click', function() {
 		servicesWindow = createServicesWindow();
 		self.containingTab.open(servicesWindow);
-	});
-
-	logout.addEventListener('click', function() {
-
-		var client = jotClient();
-		
-		client.logout({
-			success: function(response, cookie) {
-				doLogin();
-			},
-			error: function(response,xhr) {
-				alert('Error attempting to logout');
-			}
-		});
-
 	});
 
 	return self;

@@ -23,6 +23,7 @@ var GLOBALS = {
   layout: 'handheld',
 
   api: {
+
     ENDPOINT: ENDPOINT,
     
     STATUS_RESOURCE: ENDPOINT + 'api/status/',
@@ -42,6 +43,10 @@ var GLOBALS = {
     ENTRIES_RESOURCE: ENDPOINT + 'api/users/self/entries/',
     ENTRY_RESOURCE: ENDPOINT + 'api/users/self/entries/%entry_id%/'
     
+  },
+
+  ui: {
+    titleBarColor: '#309'
   }
 };
 

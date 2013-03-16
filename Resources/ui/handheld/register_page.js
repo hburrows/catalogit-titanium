@@ -68,7 +68,7 @@ module.exports = function () {
   var self = Titanium.UI.createWindow({
     backgroundColor: '#fff',
     title:'Create Account',
-    barColor: 'blue',
+    barColor: GLOBALS.ui.titleBarColor,
     navBarHidden: false
   });
 

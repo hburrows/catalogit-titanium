@@ -1,11 +1,10 @@
-"use strict";
+module.exports = function () {
 
-//Ti.include('oauth_adapter.js')
-var social = require('vendor/social');
+  "use strict";
 
-var jotClient = require('utils/jotclient');
-
-function ApplicationWindow() {
+  var social = require('vendor/social');
+  
+  var jotClient = require('utils/jotclient');
 
 	var twitterClient = social.create({
 	    site: 'Twitter',
@@ -165,5 +164,3 @@ function ApplicationWindow() {
 	return self;
 }
 
-
-module.exports = ApplicationWindow;

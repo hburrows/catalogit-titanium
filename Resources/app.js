@@ -14,7 +14,8 @@
  */
 
 var GLOBALS = require('globals'),
-    mainPage
+    createHTTPClient = require('lib/http_client_wrapper'),
+    mainPage;
 
 //bootstrap and check dependencies
 if (Ti.version < 1.8 ) {
@@ -41,9 +42,9 @@ function showTabs() {
 			You,
 			Manage;
 	
-	Capture = require('ui/' + GLOBALS.layout + '/CaptureWindow');
+	Capture = require('ui/' + GLOBALS.layout + '/capture_window');
 	Browse = require('ui/' + GLOBALS.layout + '/BrowseWindow');
-	You = require('ui/' + GLOBALS.layout + '/YouWindow');
+	You = require('ui/' + GLOBALS.layout + '/you_window');
 	Manage = require('ui/' + GLOBALS.layout + '/manage_window');
 
 	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
@@ -110,11 +111,10 @@ Ti.App.addEventListener("authentication:logout", function(e){
 	var signedIn = Ti.App.Properties.getBool("signedin");
 	if (signedIn) {
 
-    // check if the backend service is responding so we can provide a good UX if
-    // not
-    var xhr = Ti.Network.createHTTPClient({
+    // check if the backend service is responding so as to provide a "better"
+    // UX if not
+    var xhr = createHTTPClient({
       
-      // function called when the response data is available
       onload : function(e) {
 
         var response = JSON.parse(this.responseText); 
@@ -127,32 +127,7 @@ Ti.App.addEventListener("authentication:logout", function(e){
         else {
           doLogin();
         }
-      },
-
-      // function called when an error occurs, including a timeout
-      onerror : function(e) {
-
-        Ti.API.debug(this.status + ': ' + this.error);
-
-        var response;
-        var contentType = this.getResponseHeader("Content-Type");
-        if (contentType && contentType.indexOf("application/json") === 0) {
-          response = JSON.parse(this.responseText);
-        }
-        else
-        if (contentType && contentType.indexOf("text/plain") === 0) {
-          response = '"' + this.responseText + '"';
-        }
-
-        if (!this.connected && this.status === 0) {
-          alert('Application and service are not currently available.' + (response ? '  ' + JSON.stringify(response) : ''));
-        }
-        else {
-          alert(this.responseText);
-        }
-      },
-
-      timeout : 5000  // in milliseconds
+      }
 
     });
 

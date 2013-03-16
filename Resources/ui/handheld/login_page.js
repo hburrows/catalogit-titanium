@@ -53,7 +53,7 @@ module.exports = function () {
   var self = Titanium.UI.createWindow({
     backgroundColor: '#eee',
     title:'Log In',
-    barColor: 'blue',
+    barColor: GLOBALS.ui.titleBarColor,
     navBarHidden: false
   });
 
