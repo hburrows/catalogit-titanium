@@ -2,18 +2,14 @@
  * 
  */
 
-module.exports = function (parent) {
+module.exports = function (win, owner, sheetId) {
 
   "use strict";
 
 	var washView,
-			containerView,
-			sheetView,
-			titleView,
-			titleLabel,
-			parentView = null;
+			containerView;
 
-  var winRect = parent.getRect();
+  var winRect = win.getRect();
 
   var containerPadding = 20,
       containerWidth = winRect.width - (containerPadding * 2),
@@ -21,8 +17,19 @@ module.exports = function (parent) {
 
   function showSheetView() {
 
-    parent.add(washView);
-    parent.add(containerView);
+    var leftNav = win.getLeftNavButton(),
+        rightNav = win.getRightNavButton();
+
+    if (leftNav) {
+      leftNav.setEnabled(false);
+    }
+    if (rightNav) {
+      rightNav.setEnabled(false);
+    }
+
+    win.add(washView);
+    win.add(containerView);
+    owner.fireEvent(sheetId + ':opened');
 
     containerView.animate({
       top: containerPadding,
@@ -34,14 +41,25 @@ module.exports = function (parent) {
   
   function hideSheetView() {
 
+    var leftNav = win.getLeftNavButton(),
+        rightNav = win.getRightNavButton();
+
+    if (leftNav) {
+      leftNav.setEnabled(true);
+    }
+    if (rightNav) {
+      rightNav.setEnabled(true);
+    }
+
     containerView.animate({
         top: winRect.height,
         duration: 250,
         curve: Titanium.UI.ANIMATION_CURVE_EASE_OUT
       },
       function() {
-        parent.remove(containerView);
-        parent.remove(washView);
+        win.remove(containerView);
+        win.remove(washView);
+        owner.fireEvent(sheetId + ':closed');
       }
     );
 

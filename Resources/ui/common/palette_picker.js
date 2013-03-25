@@ -2,12 +2,12 @@
  * 
  */
 
-module.exports = function (parent, labels) {
+module.exports = function (win, owner, typeId, labels) {
 
   "use strict";
 
   var createSheetView = require('ui/common/sheet_view'),
-      sheetView = createSheetView(parent);
+      sheetView = createSheetView(win, owner, typeId);
 
   //
   // GRID SETUP
@@ -78,7 +78,7 @@ module.exports = function (parent, labels) {
     if (e.source._cit_id) {
       sheetView.hide();
       var name = e.source.children[0].getText();
-      parent.fireEvent('item:select', {'name': name, 'id': e.source._cit_id});
+      win.fireEvent(typeId + ':select', {'name': name, 'id': e.source._cit_id});
     }
   });
 

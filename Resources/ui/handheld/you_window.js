@@ -63,15 +63,22 @@ module.exports = function (title) {
     top: 20, center: '50%'
   });
   container.add(test);
-  
+
+  function renderContents(container, width, height) {
+    container.setBackgroundColor('#eee');
+  }
+
   test.addEventListener('click', function (e) {
 
     var createSheetView = require('ui/common/sheet_view'),
-        sheetView = createSheetView(self);
+        sheetView = createSheetView(self, self, 'test');
 
-    sheetView.container.setBackgroundColor('#eee');
     sheetView.show();
      
+  });
+
+  self.addEventListener('test:closed', function (e) {
+//    alert('closed');
   });
 
 	return self;

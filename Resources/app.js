@@ -43,7 +43,7 @@ function showTabs() {
 			Manage;
 	
 	Capture = require('ui/' + GLOBALS.layout + '/capture_window');
-	Browse = require('ui/' + GLOBALS.layout + '/BrowseWindow');
+	Browse = require('ui/' + GLOBALS.layout + '/browse_window');
 	You = require('ui/' + GLOBALS.layout + '/you_window');
 	Manage = require('ui/' + GLOBALS.layout + '/manage_window');
 

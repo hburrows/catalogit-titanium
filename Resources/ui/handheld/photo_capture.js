@@ -18,12 +18,11 @@ module.exports = function (success, error) {
   
     success:function(event) {
   
-      var globals = require('globals');
-      globals.currentMedia = event.media;
+      GLOBALS.currentMedia = event.media;
       GLOBALS.currentMediaType = 'photo';
       GLOBALS.currentMediaId = null;
       
-      Ti.App.fireEvent('photo:edit');
+      Ti.App.fireEvent('photo:edit', {entryId: null});
 
       // upload the photo.  we can't do anything with the photo regarding using it
       // to create a new entry until it's successfully updated.  The "signal" for 
@@ -35,6 +34,7 @@ module.exports = function (success, error) {
         onload : function(e) {
           var response = JSON.parse(this.responseText); 
           GLOBALS.currentMediaId = response.id;
+          GLOBALS.currentMediaURL = response.image_url;
         },
   
         timeout : 30000  // in milliseconds

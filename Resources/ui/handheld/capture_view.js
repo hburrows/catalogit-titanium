@@ -30,25 +30,19 @@ function recordAudio(view) {
   return;
 }
 
-// Handle successful login
-Ti.App.addEventListener("EntryCreated", function (e) {
-  
-  var makePhotoEditWindow = require('ui/common/photo_edit'),
-      w = makePhotoEditWindow(e.entry_id);
-      
-  w.open({modal:true});
-
-  return;
-});
-
 Ti.App.addEventListener("photo:edit", function (e) {
 
   Ti.API.info("event - photo:edit");
 
   var GLOBALS = require('globals')
 
-  var createPhotoEditWindow = require('ui/common/photo_edit'),
-      editor = createPhotoEditWindow(GLOBALS.currentMedia);
+  var media = null;
+  if (!e.entry || entry.entry === null) {
+    media = GLOBALS.currentMedia;
+  }
+
+  var createPhotoEditWindow = require('ui/handheld/entry_view'),
+      editor = createPhotoEditWindow(e.entryId, media);
       
   editor.open({
     modal:true,
