@@ -4,7 +4,7 @@
 
 var _ = require('vendor/underscore');
 var Backbone = require('vendor/backbone');
-var createEntryModel = require('lib/entry_model');
+var EntryModel = require('lib/entry_model');
 var GLOBALS = require('globals');
 var createHTTPClient = require('lib/http_client_wrapper');
 
@@ -13,7 +13,8 @@ module.exports = function (entryId, photoMedia) {
   "use strict";
 
   var entryModel = null,
-      controller = null;
+      controller = null,
+      orphanedMedia = null;
 
   var self = Titanium.UI.createWindow({
     backgroundColor: '#eee',
@@ -49,7 +50,25 @@ module.exports = function (entryId, photoMedia) {
     width:Ti.UI.SIZE
   }); 
   self.add(activityIndicator);
-  
+
+  function mediaUploaded(e) {
+    var data = e.data;
+    if (entryModel) {
+      entryModel.subsumeMedia(data);
+    }
+    else {
+      orphanedMedia = data;
+    }
+  }
+
+  self.addEventListener('open', function () {
+    Ti.App.addEventListener('media:uploaded', mediaUploaded);
+  });
+
+  self.addEventListener('close', function () {
+    Ti.App.removeEventListener('media:uploaded', mediaUploaded);
+  });
+
   // BACK - NAV BAR BUTTON
   //  back to previous view -- typically a list view
   backButton = Titanium.UI.createButton({
@@ -90,16 +109,20 @@ module.exports = function (entryId, photoMedia) {
   
   doneButton.addEventListener('click', function (e) {
 
-    controller.postEditsToModel();
+    if (GLOBALS.uploadPending) {
+      alert("Media still uploading.  Try again!");
+      return;      
+    }
+
+    controller.updateModelFromForm();
 
     var options = {
       success: function (action, response) {
-        GLOBALS.lastEntry.media = photoMedia;
         if (action === 'create') {
-          Ti.App.fireEvent('entry:created');
+          Ti.App.fireEvent('entry:created', {data: response});
         }
         else {
-          Ti.App.fireEvent('entry:updated');
+          Ti.App.fireEvent('entry:updated', {data: response});
         }
         self.close();  
       },
@@ -108,7 +131,7 @@ module.exports = function (entryId, photoMedia) {
       }
     };
 
-    if (entryModel.uri === null) {
+    if (entryModel.id === null) {
       // create
       entryModel.createEntry(options);
     }
@@ -131,9 +154,7 @@ module.exports = function (entryId, photoMedia) {
   }
   
   editButton.addEventListener('click', function (e) {
-    GLOBALS.lastEntry.media = photoMedia;
-    Ti.App.fireEvent('entry:created');
-    self.close();
+    /* switch to edit mode */
   });
 
 
@@ -241,7 +262,16 @@ module.exports = function (entryId, photoMedia) {
 
           activityIndicator.hide();
 
-          entryModel = createEntryModel(entryId, response.values, response.schema);
+          entryModel = new EntryModel({
+            id: entryId,
+            data: response.values,
+            schema: response.schema
+          });
+
+          if (orphanedMedia) {
+            entryModel.subsumeMedia(orphanedMedia);
+            orphanedMedia = null;
+          }
 
           renderView(entryModel);
 
@@ -250,7 +280,7 @@ module.exports = function (entryId, photoMedia) {
         onerror: function (e) {
           activityIndicator.hide();
           this._cit_handle_error(e);
-        },
+        }
 
       });
 
@@ -366,14 +396,14 @@ module.exports = function (entryId, photoMedia) {
     var selectContainer = Ti.UI.createView({
       left: 0, top: 0,
       width: Titanium.UI.FILL, height: Titanium.UI.SIZE,
-      layout: 'vertical',
+      layout: 'vertical'
     });
 
     propertiesView.add(selectContainer);
 
     var buttonContainer = Ti.UI.createView({
       left: 0, top: 0,
-      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE
     });
     selectContainer.add(buttonContainer);
 
@@ -430,9 +460,15 @@ module.exports = function (entryId, photoMedia) {
         var response = JSON.parse(this.responseText); 
         activityIndicator.hide();
 
-        values = (entryModel !== null ? entryModel.values : []);
-        
-        entryModel = createEntryModel(entryId, values, response);
+        entryModel = new EntryModel({
+          id: entryId,
+          schema: response
+        });
+
+       if (orphanedMedia) {
+          entryModel.subsumeMedia(orphanedMedia);
+          orphanedMedia = null;
+        }
 
         renderEdit(entryModel);
        },

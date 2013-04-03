@@ -30,19 +30,16 @@ function recordAudio(view) {
   return;
 }
 
-Ti.App.addEventListener("photo:edit", function (e) {
+Ti.App.addEventListener("photo:new", function (e) {
 
-  Ti.API.info("event - photo:edit");
+  Ti.API.info("event - photo:new");
 
-  var GLOBALS = require('globals')
+  var GLOBALS = require('globals');
 
-  var media = null;
-  if (!e.entry || entry.entry === null) {
-    media = GLOBALS.currentMedia;
-  }
+  var media = GLOBALS.currentMedia;
 
-  var createPhotoEditWindow = require('ui/handheld/entry_view'),
-      editor = createPhotoEditWindow(e.entryId, media);
+  var createEntryView = require('ui/handheld/entry_view'),
+      editor = createEntryView(null, media);
       
   editor.open({
     modal:true,
@@ -51,11 +48,6 @@ Ti.App.addEventListener("photo:edit", function (e) {
 
   return;
 });
-
-// ===================================
-// choose a photo from library
-// ===================================
-
 
 module.exports = function (tabList) {
 
@@ -69,8 +61,8 @@ module.exports = function (tabList) {
       captionText,
       instructionsView;
 
-  function setLastEntry(entry) {
-    if (entry === null) {
+  function setLastEntry(image, title, description, price) {
+    if (image === null) {
       instructionsView.visible = true;
       imageView.visible = false;
       captionView.visible = false;
@@ -79,12 +71,17 @@ module.exports = function (tabList) {
       instructionsView.visible = false;
       imageView.visible = true;
       captionView.visible = true;
-     imageView.setImage(entry);
+      captionText.setText((title || '') + (description ? '\n\n' + description : '') + (price ? '\n\n$ ' + price : ''));
+      imageView.setImage(image);
     }
   }
 
   Ti.App.addEventListener('entry:created', function (e) {
-    setLastEntry(GLOBALS.lastEntry.media);
+    var title = e.data.data['http://purl.org/dc/elements/1.1/title'],
+        description = e.data.data['http://purl.org/dc/elements/1.1/description'],
+        price = e.data.data['http://example.com/rdf/schemas/aquirePrice']
+
+    setLastEntry(GLOBALS.currentMedia, title, description, price);
   });
 
   self = Ti.UI.createView({
@@ -134,7 +131,7 @@ module.exports = function (tabList) {
     left: 10, top: 10,
     right: 10, bottom: 10,
     height: Ti.UI.SIZE,
-    text: 'Wedding Vase\n\nType: Pottery\nNotes: and an assortment of other information',
+    //text: 'Wedding Vase\n\nType: Pottery\nNotes: and an assortment of other information',
     color: '#fff',
     font:{fontWeight:'bold'},
     opacity: 1.0    
@@ -154,7 +151,7 @@ module.exports = function (tabList) {
   });
   instructionsView.add(instructionsText);
 
-  setLastEntry(null);
+  setLastEntry(null, null, null, null);
 
   var row = Ti.UI.createTableViewRow({
 	      className:'grid',
@@ -227,13 +224,6 @@ module.exports = function (tabList) {
 			}
 
 			return;
-/*			
-			e.source.borderColor = '#fff';
-			e.source.borderWidth = 2;
-			e.source.backgroundColor = colors[selectedActivity];
-					
-			showOptionSheetView();
-*/
 		}
 
 	}); 

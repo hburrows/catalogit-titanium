@@ -95,6 +95,8 @@ module.exports = function (win, entryModel) {
 
   "use strict";
 
+  var GLOBALS = require('globals');
+
   var self = Ti.UI.createView({
     left: 0, top: 0,
     width: Ti.UI.FILL, height: Ti.UI.SIZE,
@@ -309,8 +311,13 @@ module.exports = function (win, entryModel) {
 
     view: self,
     model: entryModel,
-    
-    postEditsToModel: function() {
+
+    updateModelFromForm: function() {
+
+      if (GLOBALS.uploadPending) {
+        alert("Upload pending.  Please try again later");
+        return;
+      }
 
       // for each section
       var sectionIdx, sectionMax;
@@ -357,4 +364,4 @@ module.exports = function (win, entryModel) {
       }
     }
   }
-}
+};

@@ -8,17 +8,15 @@ var ENDPOINT = 'http://localhost:8000/';
 
 var GLOBALS = {
 
-  lastEntry: {
-    id: null,
-    media: null,
-    type: null
-  },
-
-  currentEntryId: null,
+  // flag indicating that media in in process of uploading and
+  // XHR handling upload
+  uploadPending: false,
+  uploadXHR: null,
 
   currentMedia: null,
   currentMediaType: null,
   currentMediaId: null,
+  currentMediaResponse: null,
 
   layout: 'handheld',
 

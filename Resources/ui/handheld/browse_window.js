@@ -40,7 +40,7 @@ module.exports = function (title) {
 		var row = Ti.UI.createTableViewRow({
 		  left: 0, top:0,
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
-			rowURI: json_obj.entryURI,
+			rowId: json_obj.id,
 			rowJSONObj: json_obj,
 			className: 'journalEvent',
 			//selectedBackgroundColor = '#333',
@@ -52,7 +52,7 @@ module.exports = function (title) {
 		  width: Ti.UI.FILL, height: Ti.UI.SIZE,
 		  layout: 'horizontal',
 			backgroundColor: '#fff',
-			borderRadius:3
+			borderRadius:3, borderWidth: 1, borderColor: '#666'
 		});
 		row.add(rowView);
 
@@ -80,7 +80,7 @@ module.exports = function (title) {
 			color: '#000',
 			font:{fontSize:16,fontFamily:'Helvetica Neue'},
 			clickName: 'user',
-			text: json_obj.title
+			text: json_obj.data['http://purl.org/dc/elements/1.1/title']
 		});
 		textView.add(title); 
 
@@ -90,7 +90,7 @@ module.exports = function (title) {
       color: '#000',
       font:{fontSize:14,fontFamily:'Helvetica Neue'},
       clickName: 'user',
-      text: json_obj.description
+      text: json_obj.data['http://purl.org/dc/elements/1.1/description']
     });
     textView.add(description); 
 
@@ -100,7 +100,7 @@ module.exports = function (title) {
 			color:'#999',
 			font:{fontSize:14,fontFamily:'Helvetica Neue'},
 			clickName: 'user',
-			text: new Date(json_obj.create_time)
+			text: new Date(json_obj.data['http://example.com/rdf/schemas/createTime'])
 		});
 		textView.add(date); 
 
@@ -135,11 +135,13 @@ module.exports = function (title) {
 
 	// Handle entry updated event
 	Ti.App.addEventListener("entry:updated", function(e) {
+	  // find the row with matching id and update it
 		reload();
 	});
 
 	Ti.App.addEventListener("entry:created", function(e) {
-		reload();
+	  reload();
+    //tableView.insertRowBefore(0, make_row(e.data, 0));
 	});
 
   reload();
