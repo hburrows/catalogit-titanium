@@ -6,17 +6,6 @@ var createHTTPClient = require('lib/http_client_wrapper');
 var GLOBALS = require('globals');
 
 /*
-var json_layout = {
-  id: '<<uri for entry>>',
-  type: '<<uri for type>>',   // optional if schema is present
-  data: [{predicate: '', object: ''}, ...],
-  schema: [
-    {name:'', comment:'', classUri:'', properties: [{...}]}
-  ]
-}
-*/
-
-/*
  * Utility classes
  */
 
@@ -48,9 +37,9 @@ module.exports = Backbone.Model.extend({
     }
 
     // get the type from the schema
-    this.type = _.last(this.schema).classUri;
+    this.type = _.last(this.schema).id;
     if (!this.type) {
-      throw "Missing required schema classUri";
+      throw "Missing required schema";
     }
 
     // get the type from the data.  If it doesn't exist set it to the 
@@ -72,16 +61,13 @@ module.exports = Backbone.Model.extend({
   toJSON: function () {
     return {
       id: this.id,
+      type: this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],   // not necessary but added for good measure
       data: this.data
     };
   },
 
   // The schema is a list of type definitions linked via the subClassOf property.  The
   // last item in the list represents the type of the instance
-  
-  getClassURI: function () {
-    return _.last(this.schema).classUri;
-  },
   
   getClass: function () {
     return _.last(this.schema);      
@@ -154,21 +140,21 @@ module.exports = Backbone.Model.extend({
 
   _createStillImage: function (image) {
     return {
-      type: 'http://example.com/rdf/schemas/StillImage',
       data: {
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://example.com/rdf/schemas/StillImage',
         'http://example.com/rdf/schemas/location': {
-          type: 'http://www.w3.org/2003/01/geo/wgs84_pos#Point',
           data: {
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://www.w3.org/2003/01/geo/wgs84_pos#Point',
             'http://www.w3.org/2003/01/geo/wgs84_pos#lat': 0,
             'http://www.w3.org/2003/01/geo/wgs84_pos#long': 0
           }
         },
         'http://example.com/rdf/schemas/images': {
-          type: 'http://example.com/rdf/schemas/StillImageSeq',
+          type: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq',
           data: [
             {
-              type: 'http://purl.org/dc/dcmitype/StillImage',
               data: {
+                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://purl.org/dc/dcmitype/StillImage',
                 'http://example.com/rdf/schemas/stillImageType': 'original',
                 'http://example.com/rdf/schemas/stillImageURL': image.original.url,
                 'http://example.com/rdf/schemas/stillImageWidth': image.original.width,
@@ -176,8 +162,8 @@ module.exports = Backbone.Model.extend({
               }
             }, 
             {
-              type: 'http://purl.org/dc/dcmitype/StillImage',
               data: {
+                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://purl.org/dc/dcmitype/StillImage',
                 'http://example.com/rdf/schemas/stillImageType': 'thumbnail',
                 'http://example.com/rdf/schemas/stillImageURL': image.thumbnail.url,
                 'http://example.com/rdf/schemas/stillImageWidth': image.thumbnail.width,
@@ -214,7 +200,7 @@ module.exports = Backbone.Model.extend({
       }
     }
 
-    this.setProperty('http://example.com/rdf/schemas/media', {type: 'type: http://example.com/rdf/schemas/MediaContainer', data: mediaData});    
+    this.setProperty('http://example.com/rdf/schemas/media', {type: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq', data: mediaData});    
   },
 
   createEntry: function (options) {

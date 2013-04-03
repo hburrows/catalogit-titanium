@@ -155,7 +155,7 @@ module.exports = function (win, entryModel) {
 
     // skip the Entry class since we handle it in a special way.  The Entry
     // class is what holds all the media for an entry    
-    if (entryModel.schema[groupIdx].classUri === 'http%3A//example.com/rdf/schemas/Entry') {
+    if (entryModel.schema[groupIdx].id === 'http://example.com/rdf/schemas/Entry') {
       continue;
     }
 

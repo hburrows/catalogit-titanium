@@ -309,7 +309,7 @@ module.exports = function (entryId, photoMedia) {
             var rowIdx = Math.floor(idx / itemsPerRow),
                 columnIdx = idx - (rowIdx * itemsPerRow);
 
-            classes.push({title: response[idx].name, 'id': response[idx]['class']});
+            classes.push({'title': response[idx].name, 'id': response[idx].id});
           }
 
           activityIndicator.hide();
