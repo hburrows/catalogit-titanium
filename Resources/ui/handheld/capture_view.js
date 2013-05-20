@@ -1,3 +1,7 @@
+"use strict";
+
+var GLOBALS = require('globals');
+
 var cellWidth = 68;
 var cellHeight = 68;
 var xSpacer = 10;
@@ -34,8 +38,6 @@ Ti.App.addEventListener("photo:new", function (e) {
 
   Ti.API.info("event - photo:new");
 
-  var GLOBALS = require('globals');
-
   var media = GLOBALS.currentMedia;
 
   var createEntryView = require('ui/handheld/entry_view'),
@@ -53,8 +55,7 @@ module.exports = function (tabList) {
 
   "use strict";
 
-  var GLOBALS = require('globals'),
-      self,
+  var self,
       lastEntryView,
       imageView,
       captionView,
@@ -120,9 +121,7 @@ module.exports = function (tabList) {
     left: 10, bottom: 10,
     right: 10, height: Ti.UI.SIZE,
     backgroundColor: 'rgba(0,0,0,0.5)',
-    borderWidth: 1,
-    borderRadius: 15,
-    borderColor: '#eee',
+    borderWidth: 1, borderRadius: 15, borderColor: '#eee',
     visble: false    
   });
   lastEntryView.add(captionView);

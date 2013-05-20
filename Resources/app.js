@@ -93,6 +93,74 @@ Ti.App.addEventListener("authentication:logout", function(e){
   welcomePage().open();
 });
 
+function serviceGateway() {
+
+  // check if the backend service is responding so as to provide a "better"
+  // UX if not
+  var xhr = createHTTPClient({
+    
+    onload : function (e) {
+  
+      var response = JSON.parse(this.responseText); 
+  
+      // only if we think we're authenticated and the server says we're authenticated
+      // will we go to the tabs
+      if (response.authenticated) {
+        showTabs();
+      }
+      else {
+        doLogin();
+      }
+    },
+    
+    onerror: function (e) {
+      var alert;
+
+      if (!this.connected && this.status === 0) {
+
+        alert = Titanium.UI.createAlertDialog({title: 'No response from service.', message: 'Do you want to try connecting to the service again?', buttonNames: ['Yes', 'No'], cancel: 1});
+
+        alert.addEventListener('click', function(e) {
+          
+          Titanium.API.info('e = ' + JSON.stringify(e));
+
+           // Clicked cancel, first check is for iphone, second for android
+           if (e.cancel === e.index || e.cancel === true) {
+              return;
+           }
+        
+            //now you can use parameter e to switch/case
+        
+           switch (e.index) {
+              case 0: Titanium.API.info('Clicked button 0 (YES)');
+              serviceGateway();
+              break;
+        
+              //This will never be reached, if you specified cancel for index 1
+              case 1: Titanium.API.info('Clicked button 1 (NO)');
+              alert("Kill the application and then try again.")
+              break;
+        
+              default:
+              break;
+        
+          }
+        });
+
+        alert.show();
+      }
+      else
+        e._cit_handle_error(e);
+      
+    }
+  
+  });
+  
+  xhr.open('GET', GLOBALS.api.STATUS_RESOURCE);
+  xhr.send('');
+  
+  
+}
 // This is a single context application with mutliple windows in a stack
 //
 (function() {
@@ -110,30 +178,7 @@ Ti.App.addEventListener("authentication:logout", function(e){
   
 	var signedIn = Ti.App.Properties.getBool("signedin");
 	if (signedIn) {
-
-    // check if the backend service is responding so as to provide a "better"
-    // UX if not
-    var xhr = createHTTPClient({
-      
-      onload : function(e) {
-
-        var response = JSON.parse(this.responseText); 
-
-        // only if we think we're authenticated and the server says we're authenticated
-        // will we go to the tabs
-        if (response.authenticated) {
-          showTabs();
-        }
-        else {
-          doLogin();
-        }
-      }
-
-    });
-
-    xhr.open('GET', GLOBALS.api.STATUS_RESOURCE);
-    xhr.send('');
-		
+    serviceGateway();
 	}
 	else {
 		doLogin();

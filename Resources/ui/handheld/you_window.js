@@ -7,7 +7,7 @@ module.exports = function (title) {
 
 	var self = Ti.UI.createWindow({
 		title: title,
-		barColor: GLOBALS.ui.titleBarColor
+		barColor: GLOBALS.ui.titleBarColor,
 	});
 
   var container = Ti.UI.createView({
@@ -18,6 +18,14 @@ module.exports = function (title) {
   });
   self.add(container);
 
+  var vocabularies = Ti.UI.createButton({
+    height: 44,
+    width: '50%',
+    title: 'Vocabularies',
+    top: 20, center: '50%'
+  });
+  container.add(vocabularies);
+  
 	var services = Ti.UI.createButton({
 		height: 44,
 		width: '50%',
@@ -34,6 +42,12 @@ module.exports = function (title) {
 	});
 	container.add(logout);
 	
+  vocabularies.addEventListener('click', function (e) {
+    var createVocabularyWindow = require('ui/handheld/vocabulary_window'),
+        vocabularyWindow = createVocabularyWindow();
+    self.containingTab.open(vocabularyWindow);
+  });
+
 	services.addEventListener('click', function (e) {
     var createServicesWindow = require('ui/handheld/services_window');
 		var servicesWindow = createServicesWindow();
@@ -60,7 +74,7 @@ module.exports = function (title) {
     height: 44,
     width: '50%',
     title: 'Test',
-    top: 20, center: '50%'
+    top: 40, center: '50%'
   });
   container.add(test);
 
@@ -79,6 +93,68 @@ module.exports = function (title) {
 
   self.addEventListener('test:closed', function (e) {
 //    alert('closed');
+  });
+
+  var animateTest = Ti.UI.createButton({
+    height: 44,
+    width: '50%',
+    title: 'Animated Test',
+    top: 20, center: '50%'
+  });
+  container.add(animateTest);
+
+  animateTest.addEventListener('click', function() {
+
+    var createSheetView = require('ui/common/sheet_view');
+
+    var sheetView = createSheetView(self);
+
+    sheetView.frontView.add(Ti.UI.createLabel({text:'sheet front side contents'}));
+
+    var flip = Ti.UI.createButton({
+      height: 44,
+      width: '50%',
+      title: 'More',
+      bottom: 40, center: '50%'
+    });
+    sheetView.frontView.add(flip);
+  
+    flip.addEventListener('click', function () {
+      sheetView.flip();      
+    });
+
+    var back = Ti.UI.createButton({
+      height: 44,
+      width: '50%',
+      title: 'Less',
+      bottom: 40, center: '50%'
+    });
+    sheetView.backView.add(back);
+  
+    back.addEventListener('click', function () {
+      sheetView.flip();      
+    });
+
+    sheetView.frontView.addEventListener('opened', function () {
+      Ti.API.info('opened');
+    });
+
+    sheetView.frontView.addEventListener('closed', function () {
+      Ti.API.info('closed');
+    });
+
+    sheetView.frontView.addEventListener('flipToFront', function () {
+      Ti.API.info('flipToFront');
+    });
+
+    sheetView.frontView.addEventListener('flipToBack', function () {
+      Ti.API.info('flipToBack');
+    });
+
+    sheetView.show();
+
+    return;
+  
   });
 
 	return self;

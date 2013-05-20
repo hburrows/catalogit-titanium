@@ -3,7 +3,7 @@ var _ = require('vendor/underscore');
 var defaultFontSize = Ti.Platform.name === 'android' ? 15 : 13;
 var LARGE_FONT_SIZE = Ti.Platform.name === 'android' ? 18 : 16;
 
-function createEditorForProperty(rowView, property) {
+function createEditorForProperty(rowView, property, obj) {
 
   "use strict";
 
@@ -50,6 +50,10 @@ function createEditorForProperty(rowView, property) {
         font: {fontSize: defaultFontSize}
       });
 
+      if (obj) {
+        view.setValue(obj);
+      }
+
       ok.addEventListener('click', function (e) {
         view.blur();   
       });
@@ -63,15 +67,49 @@ function createEditorForProperty(rowView, property) {
     case 'http://www.w3.org/2001/XMLSchema#string':
     default:
 
+      var done = Titanium.UI.createButton({
+        systemButton : Titanium.UI.iPhone.SystemButton.DONE
+      });
+      done.addEventListener('click', function (e) {
+      });
+      
+      var prev = Titanium.UI.createButton({
+          title : 'Prev',
+          style : Titanium.UI.iPhone.SystemButtonStyle.BAR
+      });
+      prev.addEventListener('click', function (e) {
+      });
+      
+      var next = Titanium.UI.createButton({
+          title : 'Next',
+          style : Titanium.UI.iPhone.SystemButtonStyle.BAR
+      });      
+      next.addEventListener('click', function (e) {
+      });
+      
+      var flexSpace = Titanium.UI.createButton({
+        systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
+      });
+      
       view = Ti.UI.createTextArea({
         left: 0, top: 0,
         width: Ti.UI.FILL, height: Ti.UI.SIZE,
         borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
         keyboardType: Ti.UI.KEYBOARD_DEFAULT,
         returnKeyType: Ti.UI.RETURNKEY_DONE,
+        keyboardToolbar : [prev, next, flexSpace, done],
         textAlign: 'left',
-        hintText: property.comment        
+        hintText: property.comment,
+        autocorrect: false,
+        font: {
+          fontFamily: 'Arial',
+          fontSize: 16
+        }             
       });
+
+      if (obj) {
+        view.setValue(obj);
+      }
 
       break;
   }
@@ -112,13 +150,6 @@ module.exports = function (win, entryModel) {
   });
   self.add(entryType);
 
-  var classLabel = Ti.UI.createLabel({
-    left: 0, top: 10,
-    text: 'Type: ',
-    font: {fontSize: LARGE_FONT_SIZE}
-  });
-  entryType.add(classLabel);
-
   var classValue = Ti.UI.createLabel({
     left: 0, top: 10,
     text: entryModel.getClass().name,
@@ -127,13 +158,13 @@ module.exports = function (win, entryModel) {
   entryType.add(classValue);
 
   classValue.addEventListener('click', function () {
-    this.fireEvent('class:change');
+    self.fireEvent('class:change');
   });
 
   // TABLE
   //
   var tableView = Ti.UI.createTableView({
-    left: 0, top: 10,
+    left: 0, top: 20,
     width: Ti.UI.FILL, height: Ti.UI.SIZE,
     borderWidth: 1, borderColor: '#999', borderRadius: 15,
     scrollable: false
@@ -146,7 +177,7 @@ module.exports = function (win, entryModel) {
       sections = [],
       rowView, title, description;
 
-  // iterate the groups
+  // iterate the class hierarchy
   for (groupIdx = 0, groupMax = entryModel.schema.length; groupIdx < groupMax; groupIdx += 1) {
 
     var section = Ti.UI.createTableViewSection({
@@ -154,14 +185,17 @@ module.exports = function (win, entryModel) {
     });
 
     // skip the Entry class since we handle it in a special way.  The Entry
-    // class is what holds all the media for an entry    
+    // class is what holds all the media for an entry, the entry's create and
+    // update times, etc.    
     if (entryModel.schema[groupIdx].id === 'http://example.com/rdf/schemas/Entry') {
       continue;
     }
 
     groupProperties = entryModel.schema[groupIdx].properties;
 
-    // skip if there are no properties and not the last group
+    // skip if there are no properties and not the last group.  The
+    // last groups needs to be present to hold the 'add more properties'
+    // control
     if (groupProperties.length === 0 && groupIdx < groupMax - 1) {
       continue;
     }
@@ -169,11 +203,15 @@ module.exports = function (win, entryModel) {
     // iterate the properties
     for (idx = 0, max = groupProperties.length; idx < max; idx += 1) {
 
+      var pred = groupProperties[idx].property,
+          obj = entryModel.getProperty(pred),
+          editorView; 
+
       rowView = Ti.UI.createTableViewRow({
         className: 'propertyRow'
       });
 
-      rowView._cit_property = groupProperties[idx].property
+      rowView._cit_property = pred;
       rowView._cit_type = groupProperties[idx].type;
       rowView._cit_range = groupProperties[idx].range;
 
@@ -196,7 +234,7 @@ module.exports = function (win, entryModel) {
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property':
         case 'http://www.w3.org/2002/07/owl#DatatypeProperty':
 
-          editorView = createEditorForProperty(rowView, groupProperties[idx]);
+          editorView = createEditorForProperty(rowView, groupProperties[idx], obj);
           if (editorView !== null) {
             predicateObjectView.add(editorView);
           }
@@ -204,20 +242,17 @@ module.exports = function (win, entryModel) {
           break;
         case 'http://www.w3.org/2002/07/owl#ObjectProperty':
 
-          // check if domain ancestory has a Container
-          var containerType = _.contains(groupProperties[idx].ancestors,'http://www.w3.org/2000/01/rdf-schema#Container');
-          if (containerType) {
-            editorView = createEditorForContainer(rowView, groupProperties[idx].range);
-            if (editorView !== null) {
-              predicateObjectView.add(editorView);
-            }
-          }
-          else {
-            rowView.setHasChild(true);
-          }
-
+          rowView.setHasChild(true);
+ 
           break;
 
+        case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
+          editorView = createEditorForContainer(rowView, groupProperties[idx].range);
+          if (editorView !== null) {
+            predicateObjectView.add(editorView);
+          }
+          break;
+          
         default:
           break;
       }
@@ -321,7 +356,7 @@ module.exports = function (win, entryModel) {
 
       // for each section
       var sectionIdx, sectionMax;
-      for (sectionIdx = 0, sectionMax = tableView.sections.length-1; sectionIdx < sectionMax; sectionIdx += 1) {
+      for (sectionIdx = 0, sectionMax = tableView.sections.length; sectionIdx < sectionMax; sectionIdx += 1) {
 
         var section = tableView.sections[sectionIdx];
 
@@ -363,5 +398,5 @@ module.exports = function (win, entryModel) {
         }
       }
     }
-  }
-};
+  };
+}

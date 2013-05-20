@@ -14,11 +14,11 @@ module.exports = function (entryId, photoMedia) {
 
   var entryModel = null,
       controller = null,
-      orphanedMedia = null;
+      pendingMedia = null;
 
   var self = Titanium.UI.createWindow({
     backgroundColor: '#eee',
-    title: entryId === null ? 'Create Entry' : 'Edit Entry',
+    title: entryId === null ? 'Create Entry' : 'Entry',
     barColor: GLOBALS.ui.titleBarColor,
     orientationModes: [
       Ti.UI.PORTRAIT,
@@ -42,7 +42,10 @@ module.exports = function (entryId, photoMedia) {
   //
   var activityIndicator = Ti.UI.createActivityIndicator({
     color: '#000',
-    font: {fontSize:16, fontWeight:'bold'},
+    font: {
+      fontSize:16,
+      fontWeight:'bold'
+    },
     message: 'Loading...',
     style: Ti.UI.iPhone.ActivityIndicatorStyle.DARK,
     center: '50%', bottom: '10%',
@@ -52,19 +55,21 @@ module.exports = function (entryId, photoMedia) {
   self.add(activityIndicator);
 
   function mediaUploaded(e) {
-    var data = e.data;
+
     if (entryModel) {
-      entryModel.subsumeMedia(data);
+      entryModel.subsumeMedia(e.id, e.data, e.schema);
     }
     else {
-      orphanedMedia = data;
+      pendingMedia = {id: e.id, data: e.data, schema: e.schema};
     }
   }
 
+  // listen for media uploads when the window opens
   self.addEventListener('open', function () {
     Ti.App.addEventListener('media:uploaded', mediaUploaded);
   });
 
+  // stop listening for media uploads when the window closes
   self.addEventListener('close', function () {
     Ti.App.removeEventListener('media:uploaded', mediaUploaded);
   });
@@ -72,7 +77,7 @@ module.exports = function (entryId, photoMedia) {
   // BACK - NAV BAR BUTTON
   //  back to previous view -- typically a list view
   backButton = Titanium.UI.createButton({
-    title:'Cancel',
+    title: 'Back',
     style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
   });
   
@@ -145,7 +150,7 @@ module.exports = function (entryId, photoMedia) {
   // EDIT - NAV BAR BUTTON
   //  edit an existing resource
   editButton = Titanium.UI.createButton({
-    title:'Done',
+    title:'Edit',
     style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
   });
   
@@ -154,7 +159,8 @@ module.exports = function (entryId, photoMedia) {
   }
   
   editButton.addEventListener('click', function (e) {
-    /* switch to edit mode */
+    //switch to edit mode
+    return;
   });
 
 
@@ -196,7 +202,7 @@ module.exports = function (entryId, photoMedia) {
   // -- MEDIA INFO VIEW
   //
   var mediaInfoViewTop = 0,
-      mediaInfoHeight = 100;
+      mediaInfoHeight = 80;
   mediaInfoView = Titanium.UI.createView({
     //left: 0,
     //top: mediaInfoViewTop,
@@ -210,6 +216,7 @@ module.exports = function (entryId, photoMedia) {
     left: 0,
     height: mediaInfoHeight,
     width: mediaInfoHeight
+    //borderWidth: 1, borderColor: '#000'
   });
   mediaInfoView.add(photoContainer);
 
@@ -245,47 +252,118 @@ module.exports = function (entryId, photoMedia) {
   });
   containerView.add(propertiesView);
 
-  if (entryId === null) {
-    renderSelect();
+  var classPickerBackRendered = false;
+
+  function makeClassPickerMoreRow(name, description, id) {
+
+    var row = Ti.UI.createTableViewRow({
+      left: 10, top:0, right: 10,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      rowId: id,
+      className: 'classDetailRow',
+      //selectedBackgroundColor = '#333',
+      clickName: 'row'
+    });
+    
+    var rowView = Ti.UI.createView({
+      left: 0, top: 0,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      layout: 'vertical',
+      backgroundColor: '#fff'
+    });
+    row.add(rowView);
+
+    var nameView = Ti.UI.createLabel({
+      left: 0, top: 0,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      color: '#000',
+      font:{fontSize:16,fontFamily:'Helvetica Neue'},
+      clickName: 'user',
+      text: name
+    });
+    rowView.add(nameView); 
+
+    var descriptionView = Ti.UI.createLabel({
+      left: 0, top: 0,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      color: '#000',
+      font:{fontSize:14,fontFamily:'Helvetica Neue'},
+      clickName: 'user',
+      text: description
+    });
+    rowView.add(descriptionView); 
+
+    return row;
   }
-  else {
 
-      activityIndicator.show();
+  function showClassPickerBack(picker) {
 
-      // check if the service is responding
-      var xhr = createHTTPClient({
+    if (classPickerBackRendered) {
+      return;
+    }
 
-        // function called when the response data is available
-        onload : function(e) {
+    // check if the service is responding
+    var xhr = createHTTPClient({
 
-          var response = JSON.parse(this.responseText); 
+      // function called when the response data is available
+      onload : function(e) {
 
-          activityIndicator.hide();
+        var response = JSON.parse(this.responseText); 
 
-          entryModel = new EntryModel({
-            id: entryId,
-            data: response.values,
-            schema: response.schema
-          });
+        var max,
+            idx,
+            itemsPerRow = 3,
+            classes = [];
 
-          if (orphanedMedia) {
-            entryModel.subsumeMedia(orphanedMedia);
-            orphanedMedia = null;
-          }
+        activityIndicator.hide();
 
-          renderView(entryModel);
+        var back = Ti.UI.createButton({
+          height: 44,
+          width: '50%',
+          title: 'Back',
+          top: 20, center: '50%'
+        });
+        picker.backView.add(back);
+      
+        back.addEventListener('click', function () {
+          picker.flip();      
+        });
+    
+        var tableView = Titanium.UI.createTableView({
+          top: 70,
+          width: Ti.UI.FILL,
+          separatorColor: 'transparent',
+          backgroundColor: 'transparent'
+        });
+        picker.backView.add(tableView);
 
-        },
-
-        onerror: function (e) {
-          activityIndicator.hide();
-          this._cit_handle_error(e);
+        for (idx = 0, max = response.length; idx < max; idx += 1) {
+          classes.push(makeClassPickerMoreRow(response[idx].name, response[idx].comment, response[idx].id));
         }
+ 
+        tableView.setData(classes);
 
-      });
+        tableView.addEventListener('click', function(e) {
+          var id = e.rowData.id;
+          alert(id);
+      
+        });
 
-      xhr.open('GET', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%'), entryId);
-      xhr.send('');
+      },
+
+      onerror: function (e) {
+        activityIndicator.hide();
+        this._cit_handle_error(e);
+      },
+
+      timeout: 30000
+
+    });
+
+    xhr.open('GET', GLOBALS.api.USER_CLASSES_RESOURCE);
+    xhr.send('');
+
+    return;    
   }
 
   function showClassPicker() {
@@ -306,9 +384,6 @@ module.exports = function (entryId, photoMedia) {
               classes = [];
 
           for (idx = 0, max = response.length; idx < max; idx += 1) {
-            var rowIdx = Math.floor(idx / itemsPerRow),
-                columnIdx = idx - (rowIdx * itemsPerRow);
-
             classes.push({'title': response[idx].name, 'id': response[idx].id});
           }
 
@@ -318,6 +393,10 @@ module.exports = function (entryId, photoMedia) {
           var picker = createPickerView(self, self, 'class', classes);
 
           picker.show();
+
+          picker.frontView.addEventListener('flipToBack', function () {
+            showClassPickerBack(picker);
+          });
 
         },
 
@@ -330,27 +409,12 @@ module.exports = function (entryId, photoMedia) {
 
       });
 
-      xhr.open('GET', GLOBALS.api.CLASSES_RESOURCE);
+      xhr.open('GET', GLOBALS.api.USER_CLASSES_RESOURCE);
       xhr.send('');
 
       return;    
   }
   
-  function showExistingPicker() {
-    var subjects = [
-      {title: 'Basket 1'}, {title: 'Navajo Rug 1'}, {title: 'Basket 2'},
-      {title: 'Curtis Photo 1'}, {title: 'Curtis Photo 2'}, {title: 'Santa Clara vase'},
-      {title: 'Zuni Fetish 1'}, {title: 'Zuni Fetish 2'}, {title: 'More...'}
-    ];
-
-    var createPalettePicker = require('/ui/common/palette_picker');
-    var picker = createPalettePicker(self, self, 'resource', subjects);
-
-    picker.show(self, subjects);
-
-    return;
-  }
-
   function clearPropertiesView() {
     
     // clear existing contents of propertiesView
@@ -367,6 +431,12 @@ module.exports = function (entryId, photoMedia) {
 
     clearPropertiesView();
 
+    // set the image if present
+    var thumbnail = entryModel.getThumbnail();
+    if (thumbnail) {
+      photoView.setImage(thumbnail);
+    }
+
     var createPropertiesEditor = require('ui/common/properties_edit');
     
     controller = createPropertiesEditor(self, entryModel);
@@ -379,6 +449,9 @@ module.exports = function (entryId, photoMedia) {
   function renderView(entryModel) {
     
     clearPropertiesView();
+
+    // set the image
+    photoView.setImage(entryModel.getThumbnail());
 
     var createPropertiesViewer = require('ui/common/properties_view');
     
@@ -393,52 +466,8 @@ module.exports = function (entryId, photoMedia) {
     
     clearPropertiesView();
 
-    var selectContainer = Ti.UI.createView({
-      left: 0, top: 0,
-      width: Titanium.UI.FILL, height: Titanium.UI.SIZE,
-      layout: 'vertical'
-    });
-
-    propertiesView.add(selectContainer);
-
-    var buttonContainer = Ti.UI.createView({
-      left: 0, top: 0,
-      width: Ti.UI.FILL, height: Ti.UI.SIZE
-    });
-    selectContainer.add(buttonContainer);
-
-    var newSubjectButton = Ti.UI.createButton({
-      title: 'New',
-      left: 0, top: 0,
-      width: '49%'
-    });
-    buttonContainer.add(newSubjectButton);
-
-    newSubjectButton.addEventListener('click', function (e) {
-      showClassPicker();
-      return;
-    });
-
-
-    var existingSubjectButton = Ti.UI.createButton({
-      title: 'Existing',
-      left: '51%', top: 0,
-      width: '49%'
-    });
-    buttonContainer.add(existingSubjectButton);
-
-    existingSubjectButton.addEventListener('click', function (e) {
-      showExistingPicker();
-      return;
-    });
-
-    var instructions = Ti.UI.createLabel({
-      left: 0, top: 10,
-      text: "Is this a photo of something new you want to add to your catalog or of something that already exists in your catalog?  Select either 'New' or 'Existing' above.",
-      textAlign: 'center'
-    });
-    selectContainer.add(instructions);
-
+    // ??? is there a better work flow
+    showClassPicker();
   }
 
   //
@@ -448,7 +477,7 @@ module.exports = function (entryId, photoMedia) {
   // NEW CLASS
   //  listen for OWL class selection
   self.addEventListener('class:select', function (selectEvt) {
-    
+
     activityIndicator.show();
  
     // check if the service is responding
@@ -457,17 +486,25 @@ module.exports = function (entryId, photoMedia) {
       // function called when the response data is available
       onload : function(e) {
 
-        var response = JSON.parse(this.responseText); 
+        var response = JSON.parse(this.responseText);
+
         activityIndicator.hide();
 
+        if (entryModel) {
+          Ti.API.info('Change existing entry class');
+          entryModel.setSchema(response);
+          renderEdit(entryModel);
+          return;
+        }
+    
         entryModel = new EntryModel({
-          id: entryId,
           schema: response
         });
 
-       if (orphanedMedia) {
-          entryModel.subsumeMedia(orphanedMedia);
-          orphanedMedia = null;
+       if (pendingMedia) {
+          // discard or abort request
+          entryModel.subsumeMedia(pendingMedia.id, pendingMedia.data, pendingMedia.schema);
+          pendingMedia = null;
         }
 
         renderEdit(entryModel);
@@ -498,6 +535,66 @@ module.exports = function (entryId, photoMedia) {
     alert('existing item selected');
   });    
 
+
+  //
+  //  final setup and configuration
+  //
+  if (entryId === null) {
+    renderSelect();
+  }
+  else {
+
+      //
+      // fetch the JSON definition of the entry from the server
+      //
+      activityIndicator.show();
+
+      // check if the service is responding
+      var xhr = createHTTPClient({
+
+        // function called when the response data is available
+        onload : function(e) {
+
+          var response = JSON.parse(this.responseText); 
+
+          activityIndicator.hide();
+
+          // sanity check on id
+          if (response.id !== entryId) {
+            throw "INTERNAL ERROR - assertion failed";
+          }
+
+          entryModel = new EntryModel({
+            id: response.id,
+            data: response.data,
+            schema: response.schema
+          });
+
+          if (pendingMedia) {
+            // discard or cancel request
+            //
+            pendingMedia = null;
+          }
+
+          // update the entry image
+          
+          //renderView(entryModel);
+          renderEdit(entryModel);
+
+        },
+
+        onerror: function (e) {
+          activityIndicator.hide();
+          this._cit_handle_error(e);
+        },
+
+        timeout : 30000  // in milliseconds
+
+      });
+
+      xhr.open('GET', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%', entryId));
+      xhr.send('');
+  }
 
   return self;
 }

@@ -29,7 +29,7 @@ module.exports = Backbone.Model.extend({
     this.id = options.id || null;     // unique iri (i.e. identifier) for instance
     this.data = options.data || {}; // predicate/object data for instance
 
-    this.schema = options.schema;     // list of class definitions transitively connected by subClassOf property
+    this.schema = options.schema || null;     // list of class definitions transitively connected by subClassOf property
 
     // ensure that a schema exists and it has a RDF['type'] property
     if (!this.schema) {
@@ -66,6 +66,10 @@ module.exports = Backbone.Model.extend({
     };
   },
 
+  setSchema: function (schema) {
+    this.schema = schema;
+  },
+
   // The schema is a list of type definitions linked via the subClassOf property.  The
   // last item in the list represents the type of the instance
   
@@ -73,8 +77,12 @@ module.exports = Backbone.Model.extend({
     return _.last(this.schema);      
   },
 
-  subsumeMedia: function (media_json) {
-    this.media.push(media_json);
+  subsumeMedia: function (media_id, media_data, media_schema) {
+    this.media.push({id: media_id, data: media_data, schema: media_schema});
+  },
+
+  getProperty: function(predicate) {
+    return this.data[predicate];
   },
 
   // predicate/object pair must not already exist; otherwise
@@ -138,6 +146,29 @@ module.exports = Backbone.Model.extend({
     
   },
 
+  getThumbnail: function () {
+
+    var media = this.data['http://example.com/rdf/schemas/media'];
+    if (!media || media.length === 0) { return null; }
+
+    // find the first StillImage
+    var firstStillImage = _.find(media, function (el) {
+      return el.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] === 'http://example.com/rdf/schemas/StillImage';
+    });
+        
+    var images = firstStillImage.data['http://example.com/rdf/schemas/images'];
+    if (!images || images.length === 0) {
+      return null;
+    }
+
+    // find the first thumbnail
+    var thumbnail = _.find(images, function (el) {
+      return el.data['http://example.com/rdf/schemas/stillImageType'] === 'thumbnail';
+    });
+
+    return thumbnail.data['http://example.com/rdf/schemas/stillImageURL'];
+  },
+
   _createStillImage: function (image) {
     return {
       data: {
@@ -185,14 +216,22 @@ module.exports = Backbone.Model.extend({
     for (idx = 0, idxMax = this.media.length; idx < idxMax; idx += 1) {
 
       var media = this.media[idx],
+          id = media.id,
+          data = media.data,
+          schema = media.schema,
           el = null;
 
-      switch(media.type) {
-        case "stillImage":
-          el = this._createStillImage(media);
-          break;
-        default:
-          break;
+      if (id !== null) {
+        el = {id: id};
+      }
+      else {
+        switch(data.type) {
+          case "http://example.com/rdf/schemas/StillImage":
+            el = this._createStillImage(data);
+            break;
+          default:
+            break;
+        }
       }
 
       if (el) {
@@ -263,7 +302,7 @@ module.exports = Backbone.Model.extend({
       },
       
       onerror: function (e) {
-        this.__cit_handle_error(e);
+        this._cit_handle_error(e);
         if (options && options.error) {
           options.error('create');
         }
@@ -274,7 +313,9 @@ module.exports = Backbone.Model.extend({
 
     });
 
-    xhr.open('PUT', GLOBALS.api.ENTRIES_RESOURCE.replace('%entry_id%', this.id));
+    var resource = GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%', this.id);
+
+    xhr.open('PUT', resource);
     xhr.send(JSON.stringify(this.toJSON()));  
   },
 
@@ -293,7 +334,7 @@ module.exports = Backbone.Model.extend({
       },
       
       onerror: function (e) {
-        this.__cit_handle_error(e);
+        this._cit_handle_error(e);
         if (options && options.error) {
           options.error('create');
         }
@@ -304,7 +345,7 @@ module.exports = Backbone.Model.extend({
 
     });
 
-    xhr.open('DELETE', GLOBALS.api.ENTRIES_RESOURCE.replace('%entry_id%', this.id));
+    xhr.open('DELETE', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%', this.id));
     xhr.send();  
   }
 

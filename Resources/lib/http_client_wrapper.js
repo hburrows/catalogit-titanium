@@ -30,9 +30,9 @@ module.exports = function (parameters) {
 
   "use strict";
 
-  // default timeout to 10 seconds unless specified
+  // default timeout to 15 seconds unless specified
   if (!parameters.timeout) {
-    parameters.timeout = 10000;
+    parameters.timeout = 15000;
   }
 
   if (!parameters.onerror) {

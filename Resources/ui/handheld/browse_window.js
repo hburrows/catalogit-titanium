@@ -1,7 +1,7 @@
 
 var GLOBALS = require('globals');
 var createHTTPClient = require('lib/http_client_wrapper');
-var createEntryWindow = require('ui/handheld/EntryWindow');
+var createEntryView = require('ui/handheld/entry_view');
 
 module.exports = function (title) {
 
@@ -14,14 +14,26 @@ module.exports = function (title) {
 		backgroundColor: 'white'
 	});
 
+  // REFRESH - NAV BAR BUTTON
+  refreshButton = Titanium.UI.createButton({
+    title: 'Refresh',
+    style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
+  });
+  
+  self.setRightNavButton(refreshButton);
+
+  refreshButton.addEventListener('click', function () {
+    reload();
+  });
+
 	//
 	// create table view (
 	//
 	var tableView = Titanium.UI.createTableView({
-		top:0,
-		width:320,
-		separatorColor:'transparent',
-		backgroundColor:'transparent'
+		top: 0,
+		width: Ti.UI.FILL,
+		separatorColor: 'transparent',
+		backgroundColor: 'transparent'
 		//filterAttribute:'filter',
 		//style:Titanium.UI.iPhone.TableViewStyle.GROUPED,
 		//backgroundImage:'../images/bg_linen_dark.png'
@@ -30,7 +42,8 @@ module.exports = function (title) {
 
 	self.addEventListener('click', function(e) {
 
-		var entryWindow = createEntryWindow(e.rowData.rowJSONObj);
+		var entryWindow = createEntryView(e.rowData.rowJSONObj.id, null);
+
 		self.containingTab.open(entryWindow);
 
 	});
@@ -51,20 +64,19 @@ module.exports = function (title) {
 		  left: 0, top: 0,
 		  width: Ti.UI.FILL, height: Ti.UI.SIZE,
 		  layout: 'horizontal',
-			backgroundColor: '#fff',
-			borderRadius:3, borderWidth: 1, borderColor: '#666'
+			backgroundColor: '#fff'
 		});
 		row.add(rowView);
 
-    var hasImage = json_obj.images && json_obj.images.length > 0;
-    if (hasImage) {
+    var thumbnail = json_obj.data['http://example.com/rdf/schemas/stillImageURL'];
+    if (thumbnail) {
       var image = Ti.UI.createImageView({
-        image:json_obj.images[0].image,
+        image: thumbnail,
         defaultImage: '/images/cloud.png',
         left: 10, top: 10,
-        width: 45, height: 45
+        width: 60, height: 60
       });
-      row.add(image);
+      rowView.add(image);
     }
 
     var textView = Ti.UI.createView({
@@ -72,7 +84,7 @@ module.exports = function (title) {
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
       layout: 'vertical'
     });
-    row.add(textView);
+    rowView.add(textView);
 
 		var title = Ti.UI.createLabel({
 		  left: 0, top: 0,
@@ -94,21 +106,37 @@ module.exports = function (title) {
     });
     textView.add(description); 
 
+    var milliSecs = parseInt(json_obj.data['http://example.com/rdf/schemas/createTime'], 10) * 1000;
+
 		var date = Ti.UI.createLabel({
-		  left: 0, top: 10,
+		  left: 0, top: 0,
 		  width: Ti.UI.FILL, height: Ti.UI.SIZE,
-			color:'#999',
+			color:'#666',
 			font:{fontSize:14,fontFamily:'Helvetica Neue'},
 			clickName: 'user',
-			text: new Date(json_obj.data['http://example.com/rdf/schemas/createTime'])
+			text: new Date(milliSecs).toLocaleString()
 		});
 		textView.add(date); 
+
+    /*
+    var subId = Ti.UI.createLabel({
+      left: 0, top: 0,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      color:'#999',
+      font:{fontSize:12,fontFamily:'Helvetica Neue'},
+      clickName: 'user',
+      text: 'Id: ' + json_obj.id
+    });
+    textView.add(subId); 
+    */
 
 		return row;
 	}
 
 	function reload() {
 
+    tableView.setData([]);
+ 
     var xhr = createHTTPClient({
 
       // function called when the response data is available
@@ -130,18 +158,19 @@ module.exports = function (title) {
     xhr.open('GET', GLOBALS.api.ENTRIES_RESOURCE);
     xhr.send('');
 
-
 	}
 
 	// Handle entry updated event
 	Ti.App.addEventListener("entry:updated", function(e) {
 	  // find the row with matching id and update it
-		reload();
+		//reload();
+		Ti.API.log('entry:updated - event received in browse_window')
 	});
 
 	Ti.App.addEventListener("entry:created", function(e) {
-	  reload();
+	  //reload();
     //tableView.insertRowBefore(0, make_row(e.data, 0));
+    Ti.API.log('entry:created - event received in browse_window')
 	});
 
   reload();
