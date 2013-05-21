@@ -70,31 +70,6 @@ module.exports = function (title) {
 
 	});
 
-  var test = Ti.UI.createButton({
-    height: 44,
-    width: '50%',
-    title: 'Test',
-    top: 40, center: '50%'
-  });
-  container.add(test);
-
-  function renderContents(container, width, height) {
-    container.setBackgroundColor('#eee');
-  }
-
-  test.addEventListener('click', function (e) {
-
-    var createSheetView = require('ui/common/sheet_view'),
-        sheetView = createSheetView(self, self, 'test');
-
-    sheetView.show();
-     
-  });
-
-  self.addEventListener('test:closed', function (e) {
-//    alert('closed');
-  });
-
   var animateTest = Ti.UI.createButton({
     height: 44,
     width: '50%',

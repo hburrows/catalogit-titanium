@@ -117,12 +117,12 @@ function createEditorForProperty(rowView, property, obj) {
   return view;
 }
 
-function createEditorForContainer(rowView, property) {
+function createEditorForContainer(rowView, property, label) {
 
   var view = Ti.UI.createLabel({
     left: 0, top: 0,
     width: Ti.UI.FILL, height: Ti.UI.SIZE,
-    text: 'list, of, tags'
+    text: 'List of ' + label
   });
   rowView.setHasChild(true);
 
@@ -203,7 +203,8 @@ module.exports = function (win, entryModel) {
     // iterate the properties
     for (idx = 0, max = groupProperties.length; idx < max; idx += 1) {
 
-      var pred = groupProperties[idx].property,
+      var label = groupProperties[idx].label,
+          pred = groupProperties[idx].property,
           obj = entryModel.getProperty(pred),
           editorView; 
 
@@ -211,7 +212,8 @@ module.exports = function (win, entryModel) {
         className: 'propertyRow'
       });
 
-      rowView._cit_property = pred;
+      rowView._cit_property = groupProperties[idx];
+      rowView._cit_pred = pred;
       rowView._cit_type = groupProperties[idx].type;
       rowView._cit_range = groupProperties[idx].range;
 
@@ -247,7 +249,7 @@ module.exports = function (win, entryModel) {
           break;
 
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
-          editorView = createEditorForContainer(rowView, groupProperties[idx].range);
+          editorView = createEditorForContainer(rowView, groupProperties[idx].range, label);
           if (editorView !== null) {
             predicateObjectView.add(editorView);
           }
@@ -302,9 +304,10 @@ module.exports = function (win, entryModel) {
 
     var row = e.row;
     
+    var property = row._cit_property;
     var type = row._cit_type;
     var range = row._cit_range;
-    var property = row._cit_property;
+    var pred = row._cit_pred;
 
     switch(type) {
 
@@ -325,6 +328,8 @@ module.exports = function (win, entryModel) {
             break;
 
           case 'http://www.w3.org/2001/XMLSchema#string':
+            break;
+ 
           default:
             break;
         }
@@ -332,9 +337,13 @@ module.exports = function (win, entryModel) {
 
       case 'http://www.w3.org/2002/07/owl#ObjectProperty':
 
-        alert('open modal for picking/creating new secondary property');
+        alert('Open editor for picking/creating new ' + property.label + '; type: ' + property.range);
         break;
 
+      case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
+        alert('Display editor for adding/removing ' + property.label + ' items; type: ' + property.range);
+        break;
+ 
       default:
         break;     
     }
@@ -367,7 +376,7 @@ module.exports = function (win, entryModel) {
           
           var type = row._cit_type;
           var range = row._cit_range;
-          var property = row._cit_property;
+          var pred = row._cit_pred;
 
           switch(type) {
 
@@ -386,7 +395,7 @@ module.exports = function (win, entryModel) {
                 default:
                   var objectValue = view.getValue();
                   if (objectValue && objectValue.length > 0) {
-                    this.model.setProperty(property, objectValue);
+                    this.model.setProperty(pred, objectValue);
                   }
                   break; 
               }

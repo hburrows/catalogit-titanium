@@ -68,6 +68,7 @@ module.exports = Backbone.Model.extend({
 
   setSchema: function (schema) {
     this.schema = schema;
+    this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] = this.getClass().id;
   },
 
   // The schema is a list of type definitions linked via the subClassOf property.  The

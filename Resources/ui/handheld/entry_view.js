@@ -252,12 +252,14 @@ module.exports = function (entryId, photoMedia) {
   });
   containerView.add(propertiesView);
 
+  //  #######
+  //  CLASS PICKER FUNCTIONALITY -- WRAP INTO CLASS
+  //  #######
   var classPickerBackRendered = false;
 
   function makeClassPickerMoreRow(name, description, id) {
 
     var row = Ti.UI.createTableViewRow({
-      left: 10, top:0, right: 10,
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
       rowId: id,
       className: 'classDetailRow',
@@ -266,7 +268,8 @@ module.exports = function (entryId, photoMedia) {
     });
     
     var rowView = Ti.UI.createView({
-      left: 0, top: 0,
+      left: 10, right: 10,
+      top:10, bottom: 0, 
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
       layout: 'vertical',
       backgroundColor: '#fff'
@@ -277,7 +280,10 @@ module.exports = function (entryId, photoMedia) {
       left: 0, top: 0,
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
       color: '#000',
-      font:{fontSize:16,fontFamily:'Helvetica Neue'},
+      font:{
+        fontSize:16,
+        fontWeight:'bold',
+        fontFamily:'Helvetica Neue'},
       clickName: 'user',
       text: name
     });
@@ -296,6 +302,39 @@ module.exports = function (entryId, photoMedia) {
     return row;
   }
 
+  function renderClassPickerBack(picker, response) {
+
+    var max,
+        idx,
+        itemsPerRow = 3,
+        classes = [];
+    
+    activityIndicator.hide();
+    
+    var tableView = Titanium.UI.createTableView({
+      left: 10, top: 10, right: 10, bottom: 10,
+      width: Ti.UI.FILL,
+      separatorColor: 'transparent',
+      backgroundColor: 'transparent',
+      borderColor: '#000', borderWidth: 1
+    });
+    picker.backView.add(tableView);
+
+    // build the classes list and add to table
+    for (idx = 0, max = response.length; idx < max; idx += 1) {
+      classes.push(makeClassPickerMoreRow(response[idx].name, response[idx].comment, response[idx].id));
+    } 
+    tableView.setData(classes);
+
+    // setup event listener
+    tableView.addEventListener('click', function(e) {
+      var id = e.rowData.rowId;
+      picker.hide();
+      self.fireEvent('class:select', {id: e.rowData.rowId});
+    });
+    
+  }
+
   function showClassPickerBack(picker) {
 
     if (classPickerBackRendered) {
@@ -307,48 +346,8 @@ module.exports = function (entryId, photoMedia) {
 
       // function called when the response data is available
       onload : function(e) {
-
         var response = JSON.parse(this.responseText); 
-
-        var max,
-            idx,
-            itemsPerRow = 3,
-            classes = [];
-
-        activityIndicator.hide();
-
-        var back = Ti.UI.createButton({
-          height: 44,
-          width: '50%',
-          title: 'Back',
-          top: 20, center: '50%'
-        });
-        picker.backView.add(back);
-      
-        back.addEventListener('click', function () {
-          picker.flip();      
-        });
-    
-        var tableView = Titanium.UI.createTableView({
-          top: 70,
-          width: Ti.UI.FILL,
-          separatorColor: 'transparent',
-          backgroundColor: 'transparent'
-        });
-        picker.backView.add(tableView);
-
-        for (idx = 0, max = response.length; idx < max; idx += 1) {
-          classes.push(makeClassPickerMoreRow(response[idx].name, response[idx].comment, response[idx].id));
-        }
- 
-        tableView.setData(classes);
-
-        tableView.addEventListener('click', function(e) {
-          var id = e.rowData.id;
-          alert(id);
-      
-        });
-
+        renderClassPickerBack(picker, response);
       },
 
       onerror: function (e) {
@@ -366,7 +365,7 @@ module.exports = function (entryId, photoMedia) {
     return;    
   }
 
-  function showClassPicker() {
+  function showClassPickerFront() {
 
       activityIndicator.show();
 
@@ -467,7 +466,7 @@ module.exports = function (entryId, photoMedia) {
     clearPropertiesView();
 
     // ??? is there a better work flow
-    showClassPicker();
+    showClassPickerFront();
   }
 
   //
@@ -525,7 +524,7 @@ module.exports = function (entryId, photoMedia) {
   });
 
   self.addEventListener('class:change', function (selectEvt) {
-    showClassPicker();
+    showClassPickerFront();
     return;
   });
 

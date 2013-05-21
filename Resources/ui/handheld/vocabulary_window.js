@@ -93,7 +93,8 @@ module.exports = function () {
                 idx, max;
             for (idx = 0, max = graphs.length; idx < max; idx += 1) {
               
-              var graphURI = graphs[idx].graph_uri;
+              var graphURI = graphs[idx].graph_uri,
+                  graphLabel = graphs[idx].label;
 
               if (graphURI === 'http://example.com/rdf/schemas/') {
                 continue;
@@ -103,9 +104,7 @@ module.exports = function () {
                 return e.graph_uri === graphURI;
               });
 
-              var label = graphURI.substring(graphURI.lastIndexOf('/', graphURI.length-2) + 1, graphURI.length-1);
-              
-              var row = make_row(graphURI, label, userGraph !== undefined, idx);
+              var row = make_row(graphURI, graphLabel, userGraph !== undefined, idx);
               
               data.push(row);
             }
