@@ -7,7 +7,7 @@ module.exports = function (win, owner, startDate, endDate, nowDate) {
   "use strict";
 
   var createSheetView = require('ui/common/sheet_view'),
-      sheetView = createSheetView(win, owner, 'datepicker');
+      sheetView = createSheetView(win);
 
   var pickerView = Ti.UI.createPicker({
     left: 0, top: 0,
@@ -19,7 +19,7 @@ module.exports = function (win, owner, startDate, endDate, nowDate) {
     selectionIndicator: true
   });
 
-  sheetView.container.add(pickerView);
+  sheetView.frontView.add(pickerView);
 
   pickerView.addEventListener('change', function(e){
     Ti.API.info("User selected date: " + e.value.toLocaleString());

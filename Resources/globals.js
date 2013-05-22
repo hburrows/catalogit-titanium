@@ -40,6 +40,8 @@ var GLOBALS = {
 
     USER_CLASSES_RESOURCE: ENDPOINT + 'api/users/self/classes/',
 
+    USER_SUBJECTS_RESOURCE: ENDPOINT + 'api/users/self/subjects/?filter=%class_id%',
+
     SERVICES_RESOURCE: ENDPOINT + 'api/users/self/services/',
     SERVICE_RESOURCE: ENDPOINT + 'api/users/self/services/%service_type%/',
     

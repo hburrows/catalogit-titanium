@@ -11,7 +11,7 @@ function createEditorForProperty(rowView, property, obj) {
 
   switch(property.range) {
 
-    case 'http://www.w3.org/2001/XMLSchema#date':
+    case 'http://www.w3.org/2001/XMLSchema#dateTime':
 
       /*
       view = Ti.UI.createView({
@@ -27,14 +27,10 @@ function createEditorForProperty(rowView, property, obj) {
     case 'http://www.w3.org/2001/XMLSchema#decimal':
 
       var ok = Titanium.UI.createButton({
-          title : 'OK',
-          style : Titanium.UI.iPhone.SystemButtonStyle.DONE,
+          title : 'Done',
+          style : Titanium.UI.iPhone.SystemButtonStyle.DONE
       });
 
-      var cancel = Titanium.UI.createButton({
-          systemButton : Titanium.UI.iPhone.SystemButton.CANCEL
-      });
-      
       var flexSpace = Titanium.UI.createButton({
           systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
       });
@@ -45,7 +41,7 @@ function createEditorForProperty(rowView, property, obj) {
         borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
         keyboardType: Ti.UI. KEYBOARD_DECIMAL_PAD,
         returnKeyType: Ti.UI.RETURNKEY_DONE,
-        keyboardToolbar : [cancel, flexSpace, ok],
+        keyboardToolbar : [flexSpace, ok],
         hintText: property.comment,
         font: {fontSize: defaultFontSize}
       });
@@ -58,10 +54,6 @@ function createEditorForProperty(rowView, property, obj) {
         view.blur();   
       });
 
-      cancel.addEventListener('click', function (e) {
-        view.blur();   
-      });
-
       break;
 
     case 'http://www.w3.org/2001/XMLSchema#string':
@@ -70,41 +62,50 @@ function createEditorForProperty(rowView, property, obj) {
       var done = Titanium.UI.createButton({
         systemButton : Titanium.UI.iPhone.SystemButton.DONE
       });
-      done.addEventListener('click', function (e) {
-      });
-      
+ 
       var prev = Titanium.UI.createButton({
           title : 'Prev',
           style : Titanium.UI.iPhone.SystemButtonStyle.BAR
       });
-      prev.addEventListener('click', function (e) {
-      });
-      
+
       var next = Titanium.UI.createButton({
           title : 'Next',
           style : Titanium.UI.iPhone.SystemButtonStyle.BAR
       });      
-      next.addEventListener('click', function (e) {
-      });
-      
+
       var flexSpace = Titanium.UI.createButton({
         systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
       });
       
-      view = Ti.UI.createTextArea({
-        left: 0, top: 0,
-        width: Ti.UI.FILL, height: Ti.UI.SIZE,
-        borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
-        keyboardType: Ti.UI.KEYBOARD_DEFAULT,
-        returnKeyType: Ti.UI.RETURNKEY_DONE,
-        keyboardToolbar : [prev, next, flexSpace, done],
-        textAlign: 'left',
-        hintText: property.comment,
-        autocorrect: false,
-        font: {
-          fontFamily: 'Arial',
-          fontSize: 16
-        }             
+      if (property.oneOf) {
+        var i = 0;
+      }
+      else {
+        view = Ti.UI.createTextArea({
+          left: 0, top: 0,
+          width: Ti.UI.FILL, height: Ti.UI.SIZE,
+          borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
+          keyboardType: Ti.UI.KEYBOARD_DEFAULT,
+          returnKeyType: Ti.UI.RETURNKEY_DONE,
+          keyboardToolbar : [prev, next, flexSpace, done],
+          textAlign: 'left',
+          hintText: property.comment,
+          autocorrect: false,
+          font: {
+            fontFamily: 'Arial',
+            fontSize: 16
+          }             
+        });
+      }
+      
+      done.addEventListener('click', function (e) {
+        view.blur();
+      });
+
+      prev.addEventListener('click', function (e) {
+      });
+      
+      next.addEventListener('click', function (e) {
       });
 
       if (obj) {
@@ -315,12 +316,12 @@ module.exports = function (win, entryModel) {
 
         switch(range) {
 
-          case 'http://www.w3.org/2001/XMLSchema#date':
+          case 'http://www.w3.org/2001/XMLSchema#dateTime':
     
             var createDatePicker = require('ui/common/date_picker'),
-                picker = createDatePicker(win, win, null, new Date(), new Date(), { win: win, owner: win, startDate: null, endDate: new Date(), nowDate: new Date()});
+                datePicker = createDatePicker(win, win, null, new Date(), new Date(), { win: win, owner: win, startDate: null, endDate: new Date(), nowDate: new Date()});
     
-            picker.show();
+            datePicker.show();
                 
             break;
             
@@ -328,6 +329,15 @@ module.exports = function (win, entryModel) {
             break;
 
           case 'http://www.w3.org/2001/XMLSchema#string':
+            if (property.oneOf) {
+              var createEnumerationPicker = require('/ui/common/enumeration_picker'),
+                  enumerationPicker = createEnumerationPicker(win, property.property, property.oneOf);
+      
+              enumerationPicker.show();
+              enumerationPicker.root.addEventListener('enumeration:select', function (e) {
+                alert('Change subject for:\n\n' + e.property + '\n\nto value:\n\n' + e.value);
+              });
+            }
             break;
  
           default:
@@ -337,18 +347,39 @@ module.exports = function (win, entryModel) {
 
       case 'http://www.w3.org/2002/07/owl#ObjectProperty':
 
-        alert('Open editor for picking/creating new ' + property.label + '; type: ' + property.range);
+        if (property.embed) {
+          var createBNodeEditor = require('/ui/common/bnode_editor'),
+              bnodeEditor = createBNodeEditor(win, property.property, property.range, null);
+  
+          bnodeEditor.frontView.add(Ti.UI.createLabel({text: 'BNode Editor\n\nCreate/Edit ' + property.label + '.\n\ntype: ' + property.range}));
+          
+          bnodeEditor.show();
+
+        }
+        else {
+          var createSubjectPicker = require('/ui/common/subject_picker'),
+              subjectPicker = createSubjectPicker(win, property.property, property.range);
+          
+          subjectPicker.show();
+          
+          subjectPicker.root.addEventListener('subject:select', function (e) {
+            alert('Change subject for:\n\n' + e.property + '\n\nto value:\n\n' + e.id);
+          });
+        }
         break;
 
       case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
-        alert('Display editor for adding/removing ' + property.label + ' items; type: ' + property.range);
+        var createSequenceEditor = require('/ui/common/seq_editor'),
+            sequenceEditor = createSequenceEditor(win, property.property, property.range, null);
+
+        sequenceEditor.frontView.add(Ti.UI.createLabel({text: 'Sequence Editor.\n\nUsed for adding/removing ' + property.label + ' items.\n\ntype: ' + property.range}));
+        sequenceEditor.show();
         break;
  
       default:
         break;     
     }
  
-
   });
 
   return {

@@ -341,7 +341,6 @@ module.exports = function (entryId, photoMedia) {
       return;
     }
 
-    // check if the service is responding
     var xhr = createHTTPClient({
 
       // function called when the response data is available
