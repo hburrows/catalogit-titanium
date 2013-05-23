@@ -46,11 +46,11 @@ module.exports = Backbone.Model.extend({
     // schemas type; otherwise confirm a match
     var val = this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'];
     if (!val) {
-      this.addProperty('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', this.type);
+      this.addProperty('http://www.w3.org/1999/02/22-rdf-syntax-ns#type', {id: this.type});
     }
     else {
       // confirm the schema and object type are aligned
-      if (val !== this.type) {
+      if (val.id !== this.type) {
         throw "Object type and schema mismatch";
       }
     }
@@ -61,19 +61,22 @@ module.exports = Backbone.Model.extend({
   toJSON: function () {
     return {
       id: this.id,
-      type: this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'],   // not necessary but added for good measure
       data: this.data
     };
   },
 
   setSchema: function (schema) {
     this.schema = schema;
-    this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] = this.getClass().id;
+    this.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] = {id: this.getClass().id};
+  },
+
+  setData: function (data) {
+    this.data = data;
   },
 
   // The schema is a list of type definitions linked via the subClassOf property.  The
   // last item in the list represents the type of the instance
-  
+ 
   getClass: function () {
     return _.last(this.schema);      
   },
@@ -154,7 +157,7 @@ module.exports = Backbone.Model.extend({
 
     // find the first StillImage
     var firstStillImage = _.find(media, function (el) {
-      return el.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'] === 'http://example.com/rdf/schemas/StillImage';
+      return el.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'].id === 'http://example.com/rdf/schemas/StillImage';
     });
         
     var images = firstStillImage.data['http://example.com/rdf/schemas/images'];
@@ -170,13 +173,37 @@ module.exports = Backbone.Model.extend({
     return thumbnail.data['http://example.com/rdf/schemas/stillImageURL'];
   },
 
+  getOriginal: function () {
+
+    var media = this.data['http://example.com/rdf/schemas/media'];
+    if (!media || media.length === 0) { return null; }
+
+    // find the first StillImage
+    var firstStillImage = _.find(media, function (el) {
+      return el.data['http://www.w3.org/1999/02/22-rdf-syntax-ns#type'].id === 'http://example.com/rdf/schemas/StillImage';
+    });
+        
+    var images = firstStillImage.data['http://example.com/rdf/schemas/images'];
+    if (!images || images.length === 0) {
+      return null;
+    }
+
+    // find the first thumbnail
+    var thumbnail = _.find(images, function (el) {
+      return el.data['http://example.com/rdf/schemas/stillImageType'] === 'original';
+    });
+
+    return thumbnail.data['http://example.com/rdf/schemas/stillImageURL'];
+  },
+
+
   _createStillImage: function (image) {
     return {
       data: {
-        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://example.com/rdf/schemas/StillImage',
+        'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {id: 'http://example.com/rdf/schemas/StillImage'},
         'http://example.com/rdf/schemas/location': {
           data: {
-            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://www.w3.org/2003/01/geo/wgs84_pos#Point',
+            'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {id: 'http://www.w3.org/2003/01/geo/wgs84_pos#Point'},
             'http://www.w3.org/2003/01/geo/wgs84_pos#lat': 0,
             'http://www.w3.org/2003/01/geo/wgs84_pos#long': 0
           }
@@ -186,7 +213,7 @@ module.exports = Backbone.Model.extend({
           data: [
             {
               data: {
-                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://purl.org/dc/dcmitype/StillImage',
+                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {id: 'http://purl.org/dc/dcmitype/StillImage'},
                 'http://example.com/rdf/schemas/stillImageType': 'original',
                 'http://example.com/rdf/schemas/stillImageURL': image.original.url,
                 'http://example.com/rdf/schemas/stillImageWidth': image.original.width,
@@ -195,7 +222,7 @@ module.exports = Backbone.Model.extend({
             }, 
             {
               data: {
-                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': 'http://purl.org/dc/dcmitype/StillImage',
+                'http://www.w3.org/1999/02/22-rdf-syntax-ns#type': {id: 'http://purl.org/dc/dcmitype/StillImage'},
                 'http://example.com/rdf/schemas/stillImageType': 'thumbnail',
                 'http://example.com/rdf/schemas/stillImageURL': image.thumbnail.url,
                 'http://example.com/rdf/schemas/stillImageWidth': image.thumbnail.width,

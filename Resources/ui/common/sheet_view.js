@@ -2,6 +2,9 @@
  * 
  */
 
+var _ = require('vendor/underscore'),
+    Backbone = require('vendor/backbone');
+
 module.exports = function (parent) {
 
   "use strict";

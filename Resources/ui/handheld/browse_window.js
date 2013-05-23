@@ -2,6 +2,7 @@
 var GLOBALS = require('globals');
 var createHTTPClient = require('lib/http_client_wrapper');
 var createEntryView = require('ui/handheld/entry_view');
+var createEntryImageWin = require('ui/handheld/entry_image_window')
 
 module.exports = function (title) {
 
@@ -42,7 +43,9 @@ module.exports = function (title) {
 
 	self.addEventListener('click', function(e) {
 
-		var entryWindow = createEntryView(e.rowData.rowJSONObj.id, null);
+		//var entryWindow = createEntryView(e.rowData.rowJSONObj.id, null);
+		var entryWindow = createEntryImageWin(e.rowData.rowJSONObj.id);
+    entryWindow.containingTab = self.containingTab;
 
 		self.containingTab.open(entryWindow);
 
@@ -117,18 +120,6 @@ module.exports = function (title) {
 			text: new Date(milliSecs).toLocaleString()
 		});
 		textView.add(date); 
-
-    /*
-    var subId = Ti.UI.createLabel({
-      left: 0, top: 0,
-      width: Ti.UI.FILL, height: Ti.UI.SIZE,
-      color:'#999',
-      font:{fontSize:12,fontFamily:'Helvetica Neue'},
-      clickName: 'user',
-      text: 'Id: ' + json_obj.id
-    });
-    textView.add(subId); 
-    */
 
 		return row;
 	}

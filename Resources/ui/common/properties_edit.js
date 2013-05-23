@@ -1,141 +1,189 @@
-var _ = require('vendor/underscore');
 
-var defaultFontSize = Ti.Platform.name === 'android' ? 15 : 13;
-var LARGE_FONT_SIZE = Ti.Platform.name === 'android' ? 18 : 16;
-
-function createEditorForProperty(rowView, property, obj) {
-
-  "use strict";
-
-  var view = null;
-
-  switch(property.range) {
-
-    case 'http://www.w3.org/2001/XMLSchema#dateTime':
-
-      /*
-      view = Ti.UI.createView({
-        left: 10, top: 0,
-        width: Ti.UI.FILL, height: 20,
-        borderWidth: 1, borderColor: '#bbb', borderRadius: 5        
-      });
-      */
-      rowView.setHasChild(true);
-
-      break;
-
-    case 'http://www.w3.org/2001/XMLSchema#decimal':
-
-      var ok = Titanium.UI.createButton({
-          title : 'Done',
-          style : Titanium.UI.iPhone.SystemButtonStyle.DONE
-      });
-
-      var flexSpace = Titanium.UI.createButton({
-          systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
-      });
-
-      view = Ti.UI.createTextField({
-        left: 0, top: 0,
-        width: Ti.UI.FILL, height: Ti.UI.SIZE,
-        borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-        keyboardType: Ti.UI. KEYBOARD_DECIMAL_PAD,
-        returnKeyType: Ti.UI.RETURNKEY_DONE,
-        keyboardToolbar : [flexSpace, ok],
-        hintText: property.comment,
-        font: {fontSize: defaultFontSize}
-      });
-
-      if (obj) {
-        view.setValue(obj);
-      }
-
-      ok.addEventListener('click', function (e) {
-        view.blur();   
-      });
-
-      break;
-
-    case 'http://www.w3.org/2001/XMLSchema#string':
-    default:
-
-      var done = Titanium.UI.createButton({
-        systemButton : Titanium.UI.iPhone.SystemButton.DONE
-      });
- 
-      var prev = Titanium.UI.createButton({
-          title : 'Prev',
-          style : Titanium.UI.iPhone.SystemButtonStyle.BAR
-      });
-
-      var next = Titanium.UI.createButton({
-          title : 'Next',
-          style : Titanium.UI.iPhone.SystemButtonStyle.BAR
-      });      
-
-      var flexSpace = Titanium.UI.createButton({
-        systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
-      });
-      
-      if (property.oneOf) {
-        var i = 0;
-      }
-      else {
-        view = Ti.UI.createTextArea({
-          left: 0, top: 0,
-          width: Ti.UI.FILL, height: Ti.UI.SIZE,
-          borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
-          keyboardType: Ti.UI.KEYBOARD_DEFAULT,
-          returnKeyType: Ti.UI.RETURNKEY_DONE,
-          keyboardToolbar : [prev, next, flexSpace, done],
-          textAlign: 'left',
-          hintText: property.comment,
-          autocorrect: false,
-          font: {
-            fontFamily: 'Arial',
-            fontSize: 16
-          }             
-        });
-      }
-      
-      done.addEventListener('click', function (e) {
-        view.blur();
-      });
-
-      prev.addEventListener('click', function (e) {
-      });
-      
-      next.addEventListener('click', function (e) {
-      });
-
-      if (obj) {
-        view.setValue(obj);
-      }
-
-      break;
-  }
-
-  return view;
-}
-
-function createEditorForContainer(rowView, property, label) {
-
-  var view = Ti.UI.createLabel({
-    left: 0, top: 0,
-    width: Ti.UI.FILL, height: Ti.UI.SIZE,
-    text: 'List of ' + label
-  });
-  rowView.setHasChild(true);
-
-  return view; 
-}
+var _ = require('vendor/underscore'),
+    Backbone = require('vendor/backbone'),
+    GLOBALS = require('globals');
 
 module.exports = function (win, entryModel) {
 
   "use strict";
 
-  var GLOBALS = require('globals');
+  var defaultFontSize = Ti.Platform.name === 'android' ? 15 : 13;
+  var LARGE_FONT_SIZE = Ti.Platform.name === 'android' ? 18 : 16;
+  
+  function createEditorForLiteral(rowView, property, obj) {
+  
+    var view = null,
+        flexSpace;
+  
+    switch(property.range) {
+  
+      case 'http://www.w3.org/2001/XMLSchema#dateTime':
 
+        // convert obj in to datetime string if exists  
+        if (obj) {
+          obj = new Date(parseInt(obj, 10) * 1000).toLocaleString();
+          view = Ti.UI.createLabel({
+            left: 0, top: 0,
+            width: Ti.UI.FILL, height: Ti.UI.SIZE,
+            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,
+            text: obj
+          });
+        }
+
+        rowView.setHasChild(true);
+  
+        break;
+  
+      case 'http://www.w3.org/2001/XMLSchema#decimal':
+  
+        var ok = Titanium.UI.createButton({
+            title : 'Done',
+            style : Titanium.UI.iPhone.SystemButtonStyle.DONE
+        });
+  
+        flexSpace = Titanium.UI.createButton({
+            systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
+        });
+  
+        view = Ti.UI.createTextField({
+          left: 0, top: 0,
+          width: Ti.UI.FILL, height: Ti.UI.SIZE,
+          borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
+          keyboardType: Ti.UI. KEYBOARD_DECIMAL_PAD,
+          returnKeyType: Ti.UI.RETURNKEY_DONE,
+          keyboardToolbar : [flexSpace, ok],
+          hintText: property.comment,
+          font: {fontSize: defaultFontSize},
+          value: obj || ''
+        });
+  
+        ok.addEventListener('click', function (e) {
+          view.blur();   
+        });
+  
+        break;
+  
+      case 'http://www.w3.org/2001/XMLSchema#string':
+      default:
+  
+        var done = Titanium.UI.createButton({
+          systemButton : Titanium.UI.iPhone.SystemButton.DONE
+        });
+   
+        var prev = Titanium.UI.createButton({
+            title : 'Prev',
+            style : Titanium.UI.iPhone.SystemButtonStyle.BAR
+        });
+  
+        var next = Titanium.UI.createButton({
+            title : 'Next',
+            style : Titanium.UI.iPhone.SystemButtonStyle.BAR
+        });      
+  
+        flexSpace = Titanium.UI.createButton({
+          systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
+        });
+        
+        if (property.oneOf) {
+          view = Ti.UI.createLabel({
+            left:0, top:0,
+            width: Ti.UI.FILL, height: Ti.UI.SIZE,
+            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,
+            text: obj || ''           
+          });
+          rowView.setHasChild(true);
+        }
+        else {
+          view = Ti.UI.createTextArea({
+            left: 0, top: 0,
+            width: Ti.UI.FILL, height: Ti.UI.SIZE,
+            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
+            keyboardType: Ti.UI.KEYBOARD_DEFAULT,
+            returnKeyType: Ti.UI.RETURNKEY_DONE,
+            keyboardToolbar : [prev, next, flexSpace, done],
+            textAlign: 'left',
+            hintText: property.comment,
+            autocorrect: false,
+            font: {
+              fontFamily: 'Arial',
+              fontSize: 16
+            },
+            value: obj || ''             
+          });
+        }
+        
+        done.addEventListener('click', function (e) {
+          view.blur();
+        });
+  
+        prev.addEventListener('click', function (e) {
+        });
+        
+        next.addEventListener('click', function (e) {
+        });
+  
+        break;
+    }
+  
+    return view;
+  }
+  
+  function createEditorForObject(rowView, property, obj) {
+
+    var view = null;
+
+    if (obj) {
+      view = Ti.UI.createLabel({
+        left: 0, top: 0,
+        width: Ti.UI.FILL, height: Ti.UI.SIZE,
+        text: 'Object ID: ' + obj.id
+      });
+    }
+    rowView.setHasChild(true);
+  
+    return view; 
+  }
+
+  function createEditorForSeq(rowView, property, obj) {
+  
+    var view = Ti.UI.createLabel({
+      left: 0, top: 0,
+      width: Ti.UI.FILL, height: Ti.UI.SIZE
+    });
+    rowView.setHasChild(true);
+  
+    return view; 
+  }
+
+  //
+  // Update event handlers for various object types
+  //
+  function datetimeUpdated(e) {
+    entryModel.setProperty(e.property, e.value);        
+  }
+
+  function enumerationUpdated(e) {
+    entryModel.setProperty(e.property, e.value);        
+  }
+
+  function subjectUpdated(e) {
+    entryModel.setProperty(e.property, e.value);        
+  }
+
+  function bNodeUpdated(e) {
+    alert('Change bnode for:\n\n' + e.property + '\n\nto value:\n\n' + e.data);    
+  }
+
+  function sequenceUpdated(e) {
+    alert('Change sequence for:\n\n' + e.property + '\n\nto value:\n\n' + e.data);    
+  }
+
+  // ---------------------------
+  //
+  // START view definition
+  //
+  // ---------------------------
+  
   var self = Ti.UI.createView({
     left: 0, top: 0,
     width: Ti.UI.FILL, height: Ti.UI.SIZE,
@@ -176,18 +224,15 @@ module.exports = function (win, entryModel) {
       idx, max,
       groupProperties,
       sections = [],
-      rowView, title, description;
+      rowView, title, description,
+      predicateObjectView, predicateView; 
 
   // iterate the class hierarchy
   for (groupIdx = 0, groupMax = entryModel.schema.length; groupIdx < groupMax; groupIdx += 1) {
 
-    var section = Ti.UI.createTableViewSection({
-      headerTitle: entryModel.schema[groupIdx].name
-    });
-
     // skip the Entry class since we handle it in a special way.  The Entry
     // class is what holds all the media for an entry, the entry's create and
-    // update times, etc.    
+    // update times, tags, etc - core properties that everything has
     if (entryModel.schema[groupIdx].id === 'http://example.com/rdf/schemas/Entry') {
       continue;
     }
@@ -200,6 +245,10 @@ module.exports = function (win, entryModel) {
     if (groupProperties.length === 0 && groupIdx < groupMax - 1) {
       continue;
     }
+
+    var section = Ti.UI.createTableViewSection({
+      headerTitle: entryModel.schema[groupIdx].name
+    });
 
     // iterate the properties
     for (idx = 0, max = groupProperties.length; idx < max; idx += 1) {
@@ -218,14 +267,14 @@ module.exports = function (win, entryModel) {
       rowView._cit_type = groupProperties[idx].type;
       rowView._cit_range = groupProperties[idx].range;
 
-      var predicateObjectView = Ti.UI.createView({
+      predicateObjectView = Ti.UI.createView({
         left: 10, top: 10, right: 10, bottom:5,
         height: Ti.UI.SIZE, width: Ti.UI.FILL,
         layout: 'vertical'
       });
       rowView.add(predicateObjectView);
 
-      var predicateView = Ti.UI.createLabel({
+      predicateView = Ti.UI.createLabel({
         left: 0, top: 0,
         width: Ti.UI.FILL, height: Ti.UI.SIZE,
         text: groupProperties[idx].label
@@ -237,7 +286,7 @@ module.exports = function (win, entryModel) {
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property':
         case 'http://www.w3.org/2002/07/owl#DatatypeProperty':
 
-          editorView = createEditorForProperty(rowView, groupProperties[idx], obj);
+          editorView = createEditorForLiteral(rowView, groupProperties[idx], obj);
           if (editorView !== null) {
             predicateObjectView.add(editorView);
           }
@@ -245,12 +294,15 @@ module.exports = function (win, entryModel) {
           break;
         case 'http://www.w3.org/2002/07/owl#ObjectProperty':
 
-          rowView.setHasChild(true);
+          editorView = createEditorForObject(rowView, groupProperties[idx], obj);
+          if (editorView !== null) {
+            predicateObjectView.add(editorView);
+          }
  
           break;
 
         case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
-          editorView = createEditorForContainer(rowView, groupProperties[idx].range, label);
+          editorView = createEditorForSeq(rowView, groupProperties[idx], obj);
           if (editorView !== null) {
             predicateObjectView.add(editorView);
           }
@@ -319,8 +371,10 @@ module.exports = function (win, entryModel) {
           case 'http://www.w3.org/2001/XMLSchema#dateTime':
     
             var createDatePicker = require('ui/common/date_picker'),
-                datePicker = createDatePicker(win, win, null, new Date(), new Date(), { win: win, owner: win, startDate: null, endDate: new Date(), nowDate: new Date()});
+                datePicker = createDatePicker(win, property.property, null, new Date(), new Date());
     
+            datePicker.root.addEventListener('datetime:update', datetimeUpdated);
+
             datePicker.show();
                 
             break;
@@ -333,10 +387,9 @@ module.exports = function (win, entryModel) {
               var createEnumerationPicker = require('/ui/common/enumeration_picker'),
                   enumerationPicker = createEnumerationPicker(win, property.property, property.oneOf);
       
+              enumerationPicker.root.addEventListener('enumeration:update', enumerationUpdated);
+
               enumerationPicker.show();
-              enumerationPicker.root.addEventListener('enumeration:select', function (e) {
-                alert('Change subject for:\n\n' + e.property + '\n\nto value:\n\n' + e.value);
-              });
             }
             break;
  
@@ -347,24 +400,21 @@ module.exports = function (win, entryModel) {
 
       case 'http://www.w3.org/2002/07/owl#ObjectProperty':
 
-        if (property.embed) {
+        if (property.bnode) {
           var createBNodeEditor = require('/ui/common/bnode_editor'),
-              bnodeEditor = createBNodeEditor(win, property.property, property.range, null);
+              bnodeEditor = createBNodeEditor(win, property.property, property.range, {});
   
-          bnodeEditor.frontView.add(Ti.UI.createLabel({text: 'BNode Editor\n\nCreate/Edit ' + property.label + '.\n\ntype: ' + property.range}));
+          bnodeEditor.root.addEventListener('bnode:update', bNodeUpdated);
           
           bnodeEditor.show();
-
         }
         else {
           var createSubjectPicker = require('/ui/common/subject_picker'),
               subjectPicker = createSubjectPicker(win, property.property, property.range);
           
-          subjectPicker.show();
-          
-          subjectPicker.root.addEventListener('subject:select', function (e) {
-            alert('Change subject for:\n\n' + e.property + '\n\nto value:\n\n' + e.id);
-          });
+          subjectPicker.root.addEventListener('subject:update', subjectUpdated);
+
+          subjectPicker.show();          
         }
         break;
 
@@ -372,8 +422,10 @@ module.exports = function (win, entryModel) {
         var createSequenceEditor = require('/ui/common/seq_editor'),
             sequenceEditor = createSequenceEditor(win, property.property, property.range, null);
 
-        sequenceEditor.frontView.add(Ti.UI.createLabel({text: 'Sequence Editor.\n\nUsed for adding/removing ' + property.label + ' items.\n\ntype: ' + property.range}));
+        sequenceEditor.root.addEventListener('sequence:update', sequenceUpdated);
+        
         sequenceEditor.show();
+
         break;
  
       default:

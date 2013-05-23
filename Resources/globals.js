@@ -8,7 +8,7 @@ var ENDPOINT = 'http://hellssatans.us/';
 
 var GLOBALS = {
 
-  // flag indicating that media in in process of uploading and
+  // flag indicating that media is in process of uploading and
   // XHR handling upload
   uploadPending: false,
   uploadXHR: null,
@@ -17,6 +17,10 @@ var GLOBALS = {
   currentMediaType: null,
 
   layout: 'handheld',
+
+  DEFAULT_FONT_SIZE: Ti.Platform.name === 'android' ? 15 : 13,
+  LARGE_FONT_SIZE: Ti.Platform.name === 'android' ? 18 : 16,
+  SMALL_FONT_SIZE: Ti.Platform.name === 'android' ? 11 : 9,
 
   api: {
 

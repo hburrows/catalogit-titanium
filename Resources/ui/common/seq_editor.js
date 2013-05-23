@@ -11,6 +11,22 @@ module.exports = function (win, propertyId, classId, data) {
       sheetRect = sheetView.root.getRect(),
       containerWidth = sheetRect.width;
 
+  // BEGIN throw-away
+  sheetView.root.add(Ti.UI.createLabel({text: 'Not yet implemented\n\nSequence editor to add/remove items of type: ' + classId}));
+
+  var button = Ti.UI.createButton({
+    width: '50%', height: 44,
+    bottom: 20, center: '50%',
+    title: 'Save'
+  });
+  sheetView.root.add(button);
+
+  button.addEventListener('click', function () {
+    sheetView.root.fireEvent('sequence:update', {property: propertyId, data: data});    
+    sheetView.hide();
+  });
+  // END throw-away
+
   sheetView.root.addEventListener('opened', function () {
     Ti.API.info('opened');
     var leftNav = win.getLeftNavButton(),

@@ -77,7 +77,7 @@ module.exports = function (entryId, photoMedia) {
   // BACK - NAV BAR BUTTON
   //  back to previous view -- typically a list view
   backButton = Titanium.UI.createButton({
-    title: 'Back',
+    title: 'Cancel',
     style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
   });
   
@@ -107,7 +107,7 @@ module.exports = function (entryId, photoMedia) {
   // DONE - NAV BAR BUTTON
   //  done with the creation or assocation flow
   doneButton = Titanium.UI.createButton({
-    title:'Done',
+    title:'Save',
     style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
   });
   //self.setRightNavButton(doneButton);
@@ -492,20 +492,20 @@ module.exports = function (entryId, photoMedia) {
           Ti.API.info('Change existing entry class');
           entryModel.setSchema(response);
           renderEdit(entryModel);
-          return;
         }
-    
-        entryModel = new EntryModel({
-          schema: response
-        });
-
-       if (pendingMedia) {
-          // discard or abort request
-          entryModel.subsumeMedia(pendingMedia.id, pendingMedia.data, pendingMedia.schema);
-          pendingMedia = null;
+        else {
+          entryModel = new EntryModel({
+            schema: response
+          });
+  
+         if (pendingMedia) {
+            // discard or abort request
+            entryModel.subsumeMedia(pendingMedia.id, pendingMedia.data, pendingMedia.schema);
+            pendingMedia = null;
+          }
+  
+          renderEdit(entryModel);
         }
-
-        renderEdit(entryModel);
        },
       
       onerror: function (e) {

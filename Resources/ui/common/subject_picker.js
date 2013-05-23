@@ -81,7 +81,7 @@ module.exports = function (win, propertyId, classFilter) {
     tableView.addEventListener('click', function(e) {
       var id = e.rowData.rowId;
       sheetView.hide();
-      sheetView.root.fireEvent('subject:select', {property: propertyId, id: e.rowData.rowId});
+      sheetView.root.fireEvent('subject:update', {property: propertyId, value: {id: e.rowData.rowId}});
     });
     
   }

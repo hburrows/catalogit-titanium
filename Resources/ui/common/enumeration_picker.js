@@ -56,8 +56,8 @@ module.exports = function (win, propertyId, values) {
     // setup event listener
     tableView.addEventListener('click', function(e) {
       var labelView = e.rowData.children[0];
+      sheetView.root.fireEvent('enumeration:update', {property: propertyId, value: labelView.text});
       sheetView.hide();
-      sheetView.root.fireEvent('enumeration:select', {property: propertyId, value: labelView.text});
     });    
   }
 
