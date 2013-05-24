@@ -34,9 +34,8 @@ module.exports = function (title) {
 	
 	var classesView = Ti.UI.createView({
 	  top: 10,
-	  width: Ti.UI.FILL, height: 100,
-	  borderWidth: 1,
-	  borderColor: '#999',
+	  width: Ti.UI.FILL, height: Ti.UI.SIZE,
+	  borderWidth: 1, borderColor: '#000', borderRadius: 5,
 	  layout: 'vertical'
 	});
 	container.add(classesView);
@@ -65,9 +64,8 @@ module.exports = function (title) {
  
 	var propertiesView = Ti.UI.createView({
 	  top: 10,
-    width: Ti.UI.FILL, height: 100,
-    borderWidth: 1,
-    borderColor: '#999',
+    width: Ti.UI.FILL, height: Ti.UI.SIZE,
+    borderWidth: 1, borderColor: '#000', borderRadius: 5,
     layout: 'vertical'	  
 	});
 	container.add(propertiesView);

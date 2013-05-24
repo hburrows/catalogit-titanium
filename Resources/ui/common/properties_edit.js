@@ -1,160 +1,13 @@
 
-var _ = require('vendor/underscore'),
-    Backbone = require('vendor/backbone'),
-    GLOBALS = require('globals');
-
 module.exports = function (win, entryModel) {
 
   "use strict";
 
-  var defaultFontSize = Ti.Platform.name === 'android' ? 15 : 13;
-  var LARGE_FONT_SIZE = Ti.Platform.name === 'android' ? 18 : 16;
+  var _ = require('vendor/underscore'),
+      Backbone = require('vendor/backbone'),
+      GLOBALS = require('globals'),
+      editorFactory = require('ui/common/property_editor_factory');
   
-  function createEditorForLiteral(rowView, property, obj) {
-  
-    var view = null,
-        flexSpace;
-  
-    switch(property.range) {
-  
-      case 'http://www.w3.org/2001/XMLSchema#dateTime':
-
-        // convert obj in to datetime string if exists  
-        if (obj) {
-          obj = new Date(parseInt(obj, 10) * 1000).toLocaleString();
-          view = Ti.UI.createLabel({
-            left: 0, top: 0,
-            width: Ti.UI.FILL, height: Ti.UI.SIZE,
-            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,
-            text: obj
-          });
-        }
-
-        rowView.setHasChild(true);
-  
-        break;
-  
-      case 'http://www.w3.org/2001/XMLSchema#decimal':
-  
-        var ok = Titanium.UI.createButton({
-            title : 'Done',
-            style : Titanium.UI.iPhone.SystemButtonStyle.DONE
-        });
-  
-        flexSpace = Titanium.UI.createButton({
-            systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
-        });
-  
-        view = Ti.UI.createTextField({
-          left: 0, top: 0,
-          width: Ti.UI.FILL, height: Ti.UI.SIZE,
-          borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
-          keyboardType: Ti.UI. KEYBOARD_DECIMAL_PAD,
-          returnKeyType: Ti.UI.RETURNKEY_DONE,
-          keyboardToolbar : [flexSpace, ok],
-          hintText: property.comment,
-          font: {fontSize: defaultFontSize},
-          value: obj || ''
-        });
-  
-        ok.addEventListener('click', function (e) {
-          view.blur();   
-        });
-  
-        break;
-  
-      case 'http://www.w3.org/2001/XMLSchema#string':
-      default:
-  
-        var done = Titanium.UI.createButton({
-          systemButton : Titanium.UI.iPhone.SystemButton.DONE
-        });
-   
-        var prev = Titanium.UI.createButton({
-            title : 'Prev',
-            style : Titanium.UI.iPhone.SystemButtonStyle.BAR
-        });
-  
-        var next = Titanium.UI.createButton({
-            title : 'Next',
-            style : Titanium.UI.iPhone.SystemButtonStyle.BAR
-        });      
-  
-        flexSpace = Titanium.UI.createButton({
-          systemButton : Titanium.UI.iPhone.SystemButton.FLEXIBLE_SPACE
-        });
-        
-        if (property.oneOf) {
-          view = Ti.UI.createLabel({
-            left:0, top:0,
-            width: Ti.UI.FILL, height: Ti.UI.SIZE,
-            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,
-            text: obj || ''           
-          });
-          rowView.setHasChild(true);
-        }
-        else {
-          view = Ti.UI.createTextArea({
-            left: 0, top: 0,
-            width: Ti.UI.FILL, height: Ti.UI.SIZE,
-            borderWidth: 1, borderColor: '#bbb', borderRadius: 5,        
-            keyboardType: Ti.UI.KEYBOARD_DEFAULT,
-            returnKeyType: Ti.UI.RETURNKEY_DONE,
-            keyboardToolbar : [prev, next, flexSpace, done],
-            textAlign: 'left',
-            hintText: property.comment,
-            autocorrect: false,
-            font: {
-              fontFamily: 'Arial',
-              fontSize: 16
-            },
-            value: obj || ''             
-          });
-        }
-        
-        done.addEventListener('click', function (e) {
-          view.blur();
-        });
-  
-        prev.addEventListener('click', function (e) {
-        });
-        
-        next.addEventListener('click', function (e) {
-        });
-  
-        break;
-    }
-  
-    return view;
-  }
-  
-  function createEditorForObject(rowView, property, obj) {
-
-    var view = null;
-
-    if (obj) {
-      view = Ti.UI.createLabel({
-        left: 0, top: 0,
-        width: Ti.UI.FILL, height: Ti.UI.SIZE,
-        text: 'Object ID: ' + obj.id
-      });
-    }
-    rowView.setHasChild(true);
-  
-    return view; 
-  }
-
-  function createEditorForSeq(rowView, property, obj) {
-  
-    var view = Ti.UI.createLabel({
-      left: 0, top: 0,
-      width: Ti.UI.FILL, height: Ti.UI.SIZE
-    });
-    rowView.setHasChild(true);
-  
-    return view; 
-  }
-
   //
   // Update event handlers for various object types
   //
@@ -202,7 +55,7 @@ module.exports = function (win, entryModel) {
   var classValue = Ti.UI.createLabel({
     left: 0, top: 10,
     text: entryModel.getClass().name,
-    font: {fontSize: LARGE_FONT_SIZE, fontWeight: 'bold'}
+    font: {fontSize: GLOBALS.LARGE_FONT_SIZE, fontWeight: 'bold'}
   });
   entryType.add(classValue);
 
@@ -225,7 +78,8 @@ module.exports = function (win, entryModel) {
       groupProperties,
       sections = [],
       rowView, title, description,
-      predicateObjectView, predicateView; 
+      containerView, labelView,
+      labelFont = {fontSize: GLOBALS.MED_LARGE_FONT_SIZE, fontWeight: 'bold'};
 
   // iterate the class hierarchy
   for (groupIdx = 0, groupMax = entryModel.schema.length; groupIdx < groupMax; groupIdx += 1) {
@@ -253,71 +107,38 @@ module.exports = function (win, entryModel) {
     // iterate the properties
     for (idx = 0, max = groupProperties.length; idx < max; idx += 1) {
 
-      var label = groupProperties[idx].label,
-          pred = groupProperties[idx].property,
-          obj = entryModel.getProperty(pred),
+      var property = groupProperties[idx], 
+          predObj = entryModel.getProperty(property.property),
           editorView; 
 
+      if (!property) {
+        throw "something is wrong";
+      }
+
       rowView = Ti.UI.createTableViewRow({
-        className: 'propertyRow'
+        className: 'propertyEditRow',
+        _cit_property: property
       });
 
-      rowView._cit_property = groupProperties[idx];
-      rowView._cit_pred = pred;
-      rowView._cit_type = groupProperties[idx].type;
-      rowView._cit_range = groupProperties[idx].range;
-
-      predicateObjectView = Ti.UI.createView({
+      containerView = Ti.UI.createView({
         left: 10, top: 10, right: 10, bottom:5,
         height: Ti.UI.SIZE, width: Ti.UI.FILL,
         layout: 'vertical'
       });
-      rowView.add(predicateObjectView);
+      rowView.add(containerView);
 
-      predicateView = Ti.UI.createLabel({
+      labelView = Ti.UI.createLabel({
         left: 0, top: 0,
         width: Ti.UI.FILL, height: Ti.UI.SIZE,
-        text: groupProperties[idx].label
+        font: labelFont,
+        text: property.label
       });
-      predicateObjectView.add(predicateView);
+      containerView.add(labelView);
 
-      switch(groupProperties[idx].type) {
-
-        case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property':
-        case 'http://www.w3.org/2002/07/owl#DatatypeProperty':
-
-          editorView = createEditorForLiteral(rowView, groupProperties[idx], obj);
-          if (editorView !== null) {
-            predicateObjectView.add(editorView);
-          }
-
-          break;
-        case 'http://www.w3.org/2002/07/owl#ObjectProperty':
-
-          editorView = createEditorForObject(rowView, groupProperties[idx], obj);
-          if (editorView !== null) {
-            predicateObjectView.add(editorView);
-          }
- 
-          break;
-
-        case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq':
-          editorView = createEditorForSeq(rowView, groupProperties[idx], obj);
-          if (editorView !== null) {
-            predicateObjectView.add(editorView);
-          }
-          break;
-          
-        default:
-          break;
+      editorView = editorFactory.createEditorForProperty(property, predObj, {row: rowView});
+      if (editorView) {
+        containerView.add(editorView);
       }
-
-      description = Ti.UI.createLabel({
-        left: 0, top: 0,
-        text: groupProperties[idx].comment,
-        font: {fontSize: 9}
-      });
-      predicateObjectView.add(description);
 
       section.add(rowView);
     }
@@ -335,19 +156,20 @@ module.exports = function (win, entryModel) {
     layout: 'vertical'
   });
 
-  predicateObjectView = Ti.UI.createView({
+  containerView = Ti.UI.createView({
     left: 10, top: 10, right: 10,
     height: Ti.UI.SIZE, width: Ti.UI.FILL,
     layout: 'vertical'
   });
-  rowView.add(predicateObjectView);
+  rowView.add(containerView);
 
-  predicateView = Ti.UI.createLabel({
+  labelView = Ti.UI.createLabel({
     left: 0, top: 0, bottom: 0,
     width: Ti.UI.FILL, height: Ti.UI.SIZE,
-    text: 'add field'
+    font: labelFont,
+    text: 'Add Other Property'
   });
-  predicateObjectView.add(predicateView);
+  containerView.add(labelView);
 
   sections[sections.length-1].add(rowView);
 
@@ -358,15 +180,16 @@ module.exports = function (win, entryModel) {
     var row = e.row;
     
     var property = row._cit_property;
-    var type = row._cit_type;
-    var range = row._cit_range;
-    var pred = row._cit_pred;
+    if (!property) {
+      alert('Add a new, custom property');
+      return;
+    }
 
-    switch(type) {
+    switch(property.type) {
 
       case 'http://www.w3.org/2002/07/owl#DatatypeProperty':
 
-        switch(range) {
+        switch(property.range) {
 
           case 'http://www.w3.org/2001/XMLSchema#dateTime':
     
@@ -457,28 +280,38 @@ module.exports = function (win, entryModel) {
 
           var row = section.rows[rowIdx];
           
-          var type = row._cit_type;
-          var range = row._cit_range;
-          var pred = row._cit_pred;
+          var property = row._cit_property;
+          if (!property) {
+            continue;
+          }
 
-          switch(type) {
+          switch(property.type) {
 
             case 'http://www.w3.org/1999/02/22-rdf-syntax-ns#Property':
             case 'http://www.w3.org/2002/07/owl#DatatypeProperty':
             
               var view = row.children[0].children[1];
                 
-              switch(range) {
+              switch(property.range) {
                 
                 case 'http://www.w3.org/2001/XMLSchema#date':
                   break;
 
                 case 'http://www.w3.org/2001/XMLSchema#decimal':
+                  break;
+
                 case 'http://www.w3.org/2001/XMLSchema#string':
                 default:
+
+                  // this handles textareas which are wrapped in a container view to
+                  // accomodate hintText
+                  if (view.children && view.children.length > 0) {
+                    view = view.children[0];
+                  }
+
                   var objectValue = view.getValue();
                   if (objectValue && objectValue.length > 0) {
-                    this.model.setProperty(pred, objectValue);
+                    this.model.setProperty(property.property, objectValue);
                   }
                   break; 
               }

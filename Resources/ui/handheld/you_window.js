@@ -76,7 +76,7 @@ module.exports = function (title) {
     title: 'Animated Test',
     top: 20, center: '50%'
   });
-  container.add(animateTest);
+  //container.add(animateTest);
 
   animateTest.addEventListener('click', function() {
 

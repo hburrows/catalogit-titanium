@@ -22,7 +22,7 @@ module.exports = (function() {
   
           // convert obj in to datetime string if exists  
           view = Ti.UI.createTextField({
-            left: 0, top: 0,
+            left: 0, top: 0, bottom: 2,
             width: Ti.UI.FILL, height: Ti.UI.SIZE,
             borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
             hintText: property.comment,
@@ -49,7 +49,7 @@ module.exports = (function() {
           });
     
           view = Ti.UI.createTextField({
-            left: 0, top: 0,
+            left: 0, top: 0, bottom: 2,
             width: Ti.UI.FILL, height: Ti.UI.SIZE,
             borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
             keyboardType: Ti.UI. KEYBOARD_NUMBER_PAD,
@@ -78,7 +78,7 @@ module.exports = (function() {
           });
     
           view = Ti.UI.createTextField({
-            left: 0, top: 0,
+            left: 0, top: 0, bottom: 2,
             width: Ti.UI.FILL, height: Ti.UI.SIZE,
             borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
             keyboardType: Ti.UI. KEYBOARD_DECIMAL_PAD,
@@ -119,7 +119,7 @@ module.exports = (function() {
           if (property.oneOf) {
 
             view = Ti.UI.createTextField({
-              left: 0, top: 0,
+              left: 0, top: 0, bottom: 2,
               width: Ti.UI.FILL, height: Ti.UI.SIZE,
               borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
               hintText: property.comment,
@@ -133,8 +133,14 @@ module.exports = (function() {
             }
           }
           else {
-            view = Ti.UI.createTextArea({
-              left: 0, top: 0,
+            view = Ti.UI.createView({
+              left: 0, top: 0, bottom: 2,
+              width: Ti.UI.FILL, height: Ti.UI.SIZE,
+              layout: 'vertical'
+            });
+
+            var textAreaView = Ti.UI.createTextArea({
+              left: 0, top: 0, bottom: 0,
               width: Ti.UI.FILL, height: Ti.UI.SIZE,
               borderWidth: 1, borderColor: '#bbb', borderRadius: DEFAULT_BORDER_RADIUS,        
               keyboardType: Ti.UI.KEYBOARD_DEFAULT,
@@ -146,10 +152,20 @@ module.exports = (function() {
               font: {fontSize: GLOBALS.DEFAULT_FONT_SIZE},
               value: data || ''             
             });
+            view.add(textAreaView);
+            
+            var hintTextView = Ti.UI.createLabel({
+              left: 0, top: 0, bottom: 0,
+              width: Ti.UI.FILL, height: Ti.UI.SIZE,
+              font: {fontSize: GLOBALS.SMALL_FONT_SIZE},
+              color: '#999',
+              text: property.comment        
+            });
+            view.add(hintTextView);
           }
           
           done.addEventListener('click', function (e) {
-            view.blur();
+            textAreaView.blur();
           });
     
           prev.addEventListener('click', function (e) {
@@ -167,7 +183,7 @@ module.exports = (function() {
     createObjectEditor: function (property, data, options) {
 
       var view = Ti.UI.createTextField({
-        left: 0, top: 0,
+        left: 0, top: 0, bottom: 2,
         width: Ti.UI.FILL, height: Ti.UI.SIZE,
         borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
         hintText: property.comment,
@@ -186,7 +202,7 @@ module.exports = (function() {
     createSeqEditor: function (property, data, options) {
 
       var view = Ti.UI.createTextField({
-        left: 0, top: 0,
+        left: 0, top: 0, bottom: 2,
         width: Ti.UI.FILL, height: Ti.UI.SIZE,
         borderStyle: Ti.UI.INPUT_BORDERSTYLE_ROUNDED,
         hintText: property.comment,

@@ -25,7 +25,8 @@ module.exports = function (win, propertyId, classId, data) {
         group,
         properties, property,
         sections = [],
-        rowView, containerView, labelView;
+        rowView, containerView, labelView,
+        labelFont = {fontSize: GLOBALS.MED_LARGE_FONT_SIZE, fontWeight: 'bold'};
 
     for (outIdx = 0, outMax = groups.length; outIdx < outMax; outIdx += 1) {
       
@@ -48,7 +49,6 @@ module.exports = function (win, propertyId, classId, data) {
       for (inIdx = 0, inMax = properties.length; inIdx < inMax; inIdx += 1) {
         
         property = properties[inIdx];
-        Ti.API.info('  ' + property.label + '(' + property.comment + ')');
 
         var predObj = data[property.property],
             view; 
@@ -68,6 +68,7 @@ module.exports = function (win, propertyId, classId, data) {
         labelView = Ti.UI.createLabel({
           left: 0, top: 0,
           width: Ti.UI.FILL, height: Ti.UI.SIZE,
+          font: labelFont,
           text: property.label
         });
         containerView.add(labelView);
@@ -102,6 +103,7 @@ module.exports = function (win, propertyId, classId, data) {
     labelView = Ti.UI.createLabel({
       left: 0, top: 0, bottom: 0,
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
+      font: labelFont,
       text: 'Add Other Property'
     });
     containerView.add(labelView);

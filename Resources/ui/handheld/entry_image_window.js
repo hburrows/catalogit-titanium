@@ -2,7 +2,7 @@
  * @author Howard Burrows
  */
 
-module.exports = function(entryId) {
+module.exports = function(entryId, entryList) {
 
   "use strict";
 
@@ -25,7 +25,7 @@ module.exports = function(entryId) {
 
   // BACK - NAV BAR BUTTON
   var backButton = Titanium.UI.createButton({
-    title: 'Back',
+    title: 'View All',
     style:Titanium.UI.iPhone.SystemButtonStyle.PLAIN
   });
   
@@ -92,22 +92,84 @@ module.exports = function(entryId) {
       left: 10, bottom: 10,
       right: 10, height: Ti.UI.SIZE,
       backgroundColor: 'rgba(0,0,0,0.5)',
-      borderWidth: 1, borderRadius: 15, borderColor: '#eee'
+      borderWidth: 1, borderRadius: 15, borderColor: '#eee',
+      layout: 'vertical'
     });
     containerView.add(captionView);
     
-    var captionText = Ti.UI.createLabel({
-      left: 10, top: 10,
-      right: 10, bottom: 10,
+    var typeView = Ti.UI.createLabel({
+      left: 10, top: 10, right: 10, bottom: 10,
       height: Ti.UI.SIZE,
-      text: (title || '') + (description ? '\n\n' + description : ''),
+      text: entryModel.getClass().name,
       color: '#fff',
-      font:{fontWeight:'bold'},
-      opacity: 1.0    
+      font:{fontWeight:'bold', fontSize: GLOBALS.LARGE_FONT_SIZE}
     });
-    captionView.add(captionText);
+    captionView.add(typeView);
+
+    if (title) {
+      var titleView = Ti.UI.createLabel({
+        left: 10, top: 0, right: 10, bottom: 10,
+        height: Ti.UI.SIZE,
+        text: title,
+        color: '#fff',
+        font:{fontSize: GLOBALS.LARGE_FONT_SIZE}
+      });
+      captionView.add(titleView);
+    }
+
+    if (description) {
+      var descriptionView = Ti.UI.createLabel({
+        left: 10, top: 0, right: 10, bottom: 10,
+        height: Ti.UI.SIZE,
+        text: description,
+        color: '#fff',
+        font:{fontSize: GLOBALS.MEDIUM_FONT_SIZE}
+      });
+      captionView.add(descriptionView);
+    }
 
     return;    
+  }
+
+  function load(loadEntryId) {
+
+    activityIndicator.show();
+  
+    var xhr = createHTTPClient({
+  
+      // function called when the response data is available
+      onload : function(e) {
+  
+        var response = JSON.parse(this.responseText); 
+  
+        activityIndicator.hide();
+  
+        // sanity check on id
+        if (response.id !== loadEntryId) {
+          throw "INTERNAL ERROR - assertion failed";
+        }
+  
+        entryModel = new EntryModel({
+          id: response.id,
+          data: response.data,
+          schema: response.schema
+        });
+  
+        renderEntry(entryModel);
+        entryId = loadEntryId;
+      },
+  
+      onerror: function (e) {
+        activityIndicator.hide();
+        this._cit_handle_error(e);
+      },
+  
+      timeout : 30000  // in milliseconds
+  
+    });
+  
+    xhr.open('GET', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%', loadEntryId));
+    xhr.send('');
   }
 
   // listen for event updates
@@ -125,45 +187,42 @@ module.exports = function(entryId) {
     }
   });
 
-  //
-  // fetch the JSON definition of the entry from the server
-  //
-  activityIndicator.show();
+  // listen for swipe events
+  containerView.addEventListener('swipe', function(e){
 
-  var xhr = createHTTPClient({
+    var model = entryList.get(entryId),
+        idx = entryList.indexOf(model);
 
-    // function called when the response data is available
-    onload : function(e) {
-
-      var response = JSON.parse(this.responseText); 
-
-      activityIndicator.hide();
-
-      // sanity check on id
-      if (response.id !== entryId) {
-        throw "INTERNAL ERROR - assertion failed";
+    if (e.direction === 'left') {
+      // get the next
+      if (idx < entryList.length - 1) {
+        idx += 1;
       }
+      else {
+        return;
+      }
+    }
+    else 
+    if (e.direction === 'right') {
+      // get the previous
+      if (idx > 0) {
+        idx -= 1;
+      }
+      else {
+        return;
+      }
+    }
+    else {
+      // ignore any other swipes
+      return;
+    }
 
-      entryModel = new EntryModel({
-        id: response.id,
-        data: response.data,
-        schema: response.schema
-      });
-
-      renderEntry(entryModel);
-    },
-
-    onerror: function (e) {
-      activityIndicator.hide();
-      this._cit_handle_error(e);
-    },
-
-    timeout : 30000  // in milliseconds
+    var nextEntry = entryList.at(idx);
+    load(nextEntry.id);
 
   });
-
-  xhr.open('GET', GLOBALS.api.ENTRY_RESOURCE.replace('%entry_id%', entryId));
-  xhr.send('');
+  
+  load(entryId);
 
   return self;
 

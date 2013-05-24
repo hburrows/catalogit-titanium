@@ -46,6 +46,9 @@
         </splash>
         <theme>default</theme>
     </mobileweb>
-    <modules/>
+    <modules>
+        <module platform="android">facebook</module>
+        <module platform="iphone">facebook</module>
+    </modules>
     <property name="ti.facebook.appid">486185371402693</property>
 </ti:app>

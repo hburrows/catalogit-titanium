@@ -31,10 +31,12 @@ module.exports = function () {
   });
   self.add(label);
  
+  var fb = require('facebook');
+
 	var facebook = Ti.UI.createButton({
 		height:44,
 		width:200,
-		title:Ti.Facebook.getLoggedIn() ? 'Disconnect Facebook' : 'Connect Facebook',
+		title: fb.getLoggedIn() ? 'Disconnect Facebook' : 'Connect Facebook',
 		top:100
 	});
 	self.add(facebook);

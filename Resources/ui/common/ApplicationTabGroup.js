@@ -9,16 +9,19 @@ module.exports = function (tabList) {
 	//create module instance
 	var self = Ti.UI.createTabGroup();
 	
-	var i;
-	for (i=0; i < tabList.length; i=i+1) {
-		
-		var label = L(tabList[i].name);
+	var idx, max;
+	
+	for (idx = 0, max = tabList.length; idx < max; idx += 1) {
 
-		var win = new tabList[i].window(label);
+    var tabInfo = tabList[idx];
+
+		var label = L(tabInfo.name);
+
+		var win = new tabInfo.window(label);
 
 		var tab = Ti.UI.createTab({
 			title: label,
-			icon: tabList[i].icon,
+			icon: tabInfo.icon,
 			window: win
 		});
 

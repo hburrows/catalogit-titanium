@@ -37,11 +37,13 @@ function getIsTablet() {
 
 function showTabs() {
 
-	var Capture,
+	var Dashboard,
+	    Capture,
 			Browse,
 			You,
 			Manage;
 	
+	Dashboard = require('ui/' + GLOBALS.layout + '/dashboard_window');
 	Capture = require('ui/' + GLOBALS.layout + '/capture_window');
 	Browse = require('ui/' + GLOBALS.layout + '/browse_window');
 	You = require('ui/' + GLOBALS.layout + '/you_window');
@@ -49,17 +51,21 @@ function showTabs() {
 
 	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
 	mainPage = new ApplicationTabGroup([
-		{"name": "Capture",
-		 "window": Capture,
-		 "icon":"/images/nav_post_jot.png"
-		},
-		{"name": "Browse",
+    {"name": "Dashboard",
+     "window": Dashboard,
+     "icon": "/images/tabs/KS_nav_views.png"
+    },
+		{"name": "View",
 		 "window": Browse,
 		 "icon":"/images/tabs/KS_nav_ui.png"
 		},
+    {"name": "Capture",
+     "window": Capture,
+     "icon": "/images/tabs/10-medical.png"
+    },
 		{"name": "Manage",
 		 "window": Manage,
-		 "icon": "/images/tabs/KS_nav_views.png"
+     "icon":"/images/nav_post_jot.png"
 		},
 		{"name": "You",
 		 "window": You,
@@ -67,6 +73,7 @@ function showTabs() {
 		}
 	]);
 	
+	mainPage.setActiveTab(1);
 	mainPage.open();
 
 }

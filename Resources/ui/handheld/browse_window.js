@@ -1,17 +1,30 @@
 
-var GLOBALS = require('globals');
-var createHTTPClient = require('lib/http_client_wrapper');
-var createEntryView = require('ui/handheld/entry_view');
-var createEntryImageWin = require('ui/handheld/entry_image_window')
-
 module.exports = function (title) {
-
+  
   "use strict";
 
-	var self = Ti.UI.createWindow({
+  var GLOBALS = require('globals'),
+      createHTTPClient = require('lib/http_client_wrapper'),
+      createEntryImageWin = require('ui/handheld/entry_image_window'),
+      _ = require('vendor/underscore'),
+      Backbone = require('vendor/backbone');
+
+  var Entry = Backbone.Model.extend({});
+
+  var EntryList = Backbone.Collection.extend({
+
+    model: Entry,
+    
+    initialize: function (models, options) {
+    }
+  });
+
+  var entryList,
+      self;
+
+  self = Ti.UI.createWindow({
 		title:title,
 		barColor: '#006',
-//		backgroundImage: '/images/bg_grey_gradient_noise.png',
 		backgroundColor: 'white'
 	});
 
@@ -43,11 +56,10 @@ module.exports = function (title) {
 
 	self.addEventListener('click', function(e) {
 
-		//var entryWindow = createEntryView(e.rowData.rowJSONObj.id, null);
-		var entryWindow = createEntryImageWin(e.rowData.rowJSONObj.id);
-    entryWindow.containingTab = self.containingTab;
+		var entryViewWnd = createEntryImageWin(e.rowData.rowJSONObj.id, entryList);
+    entryViewWnd.containingTab = self.containingTab;
 
-		self.containingTab.open(entryWindow);
+		self.containingTab.open(entryViewWnd);
 
 	});
 
@@ -93,22 +105,23 @@ module.exports = function (title) {
 		  left: 0, top: 0,
 		  width: Ti.UI.FILL, height: Ti.UI.SIZE,
 			color: '#000',
-			font:{fontSize:16,fontFamily:'Helvetica Neue'},
+			font:{fontSize:GLOBALS.LARGE_FONT_SIZE,fontFamily:'Helvetica Neue'},
 			clickName: 'user',
 			text: json_obj.data['http://purl.org/dc/elements/1.1/title']
 		});
 		textView.add(title); 
 
     var description = Ti.UI.createLabel({
-      left: 0, top: 10,
+      left: 0, top: 5,
       width: Ti.UI.FILL, height: Ti.UI.SIZE,
       color: '#000',
-      font:{fontSize:14,fontFamily:'Helvetica Neue'},
+      font:{fontSize:GLOBALS.MEDIUM_FONT_SIZE,fontFamily:'Helvetica Neue'},
       clickName: 'user',
       text: json_obj.data['http://purl.org/dc/elements/1.1/description']
     });
     textView.add(description); 
 
+/*
     var milliSecs = parseInt(json_obj.data['http://example.com/rdf/schemas/createTime'], 10) * 1000;
 
 		var date = Ti.UI.createLabel({
@@ -120,6 +133,13 @@ module.exports = function (title) {
 			text: new Date(milliSecs).toLocaleString()
 		});
 		textView.add(date); 
+*/
+    // filter anything that doesn't have an image, title and description
+    if (!thumbnail && 
+        !json_obj.data['http://purl.org/dc/elements/1.1/title'] && 
+        !json_obj.data['http://purl.org/dc/elements/1.1/title']) {
+      return null;
+    }
 
 		return row;
 	}
@@ -133,15 +153,23 @@ module.exports = function (title) {
       // function called when the response data is available
       onload : function(e) {
 
+        Ti.API.info('onload of entry list reload');
+
         var response = JSON.parse(this.responseText);
 
-			  var data = [];
+        var data = [];
+			  var rows = [];
 				var idx;
 				for (idx = 0; idx < response.length; idx=idx+1) {
 					var row = make_row(response[idx], idx);
-					data.push(row);
+					if (row) {
+            rows.push(row);
+            data.push(response[idx]);
+					}
 				}
-				tableView.setData(data);			
+				tableView.setData(rows);
+
+        entryList = new EntryList(data);
 			}
 				
 		});

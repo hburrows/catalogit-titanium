@@ -20,7 +20,11 @@ var GLOBALS = {
 
   DEFAULT_FONT_SIZE: Ti.Platform.name === 'android' ? 15 : 13,
   LARGE_FONT_SIZE: Ti.Platform.name === 'android' ? 18 : 16,
+  MED_LARGE_FONT_SIZE: Ti.Platform.name === 'android' ? 16 : 14,
+  MEDIUM_FONT_SIZE: Ti.Platform.name === 'android' ? 14 : 12,  
   SMALL_FONT_SIZE: Ti.Platform.name === 'android' ? 11 : 9,
+
+  FONT_FAMILY: 'Helvetica Neue',
 
   api: {
 
