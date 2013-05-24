@@ -13,11 +13,9 @@ module.exports = function (tabList) {
 	
 	for (idx = 0, max = tabList.length; idx < max; idx += 1) {
 
-    var tabInfo = tabList[idx];
-
-		var label = L(tabInfo.name);
-
-		var win = new tabInfo.window(label);
+    var tabInfo = tabList[idx],
+		    label = L(tabInfo.name),
+		    win = new tabInfo.window(label);
 
 		var tab = Ti.UI.createTab({
 			title: label,

@@ -49,7 +49,8 @@ function showTabs() {
 	You = require('ui/' + GLOBALS.layout + '/you_window');
 	Manage = require('ui/' + GLOBALS.layout + '/manage_window');
 
-	var ApplicationTabGroup = require('ui/common/ApplicationTabGroup');
+	var ApplicationTabGroup = require('ui/common/application_tab_group');
+
 	mainPage = new ApplicationTabGroup([
     {"name": "Dashboard",
      "window": Dashboard,
